@@ -31,19 +31,22 @@
 }
 @layer base {
   body {
-    @apply  bg-white font-extrabold h-full w-full;
+    @apply flex justify-center h-full w-full ;
   }
   
 }
 
 @layer components {
-
+  .leaflet-container {
+    @apply h-full w-full border;
+  }
+ 
+  .leafletIconNav {
+    @apply h-24 w-24 bg-red;
+  }
 }
 
 
 @layer utilities {
  
 }
-
-
-

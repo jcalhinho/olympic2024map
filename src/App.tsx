@@ -1,25 +1,26 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link } from "react-router-dom";
 import './index.css'; // Assurez-vous que votre fichier CSS est bien importé
+import MapCard from './components/MapCard';
 
 function App() {
   return (
    
-      <Router>
-        <div className="body">
-          <nav className="p-4">
-            <div className="flex justify-center space-x-4">
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/parkings-velo">Parkings Vélo</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/evenements-culturels">Événements Culturels</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/centres-preparation">Centres de Préparation</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/aide-volontaires">Aide aux Volontaires</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/sites-competition">Sites de Compétition</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/psa-snm">PSA SNM</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/boutiques-officielles">Boutiques Officielles</Link></button>
-              <button className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active"><Link to="/poi-sites">POI Sites</Link></button>
+     
+        <div className="h-full w-full">
+          <nav className="py-3 mb-4">
+            <div className="">
+            <Link to="/parkings-velo"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Parkings Vélo</button></Link>
+            <Link to="/evenements-culturels"><button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Événements Culturels</button></Link>
+             <Link to="/centres-preparation"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Centres de Préparation</button></Link>
+             <Link to="/aide-volontaires"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Aide aux Volontaires</button></Link>
+             <Link to="/sites-competition"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Sites de Compétition</button></Link>
+             <Link to="/psa-snm"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">PSA SNM</button></Link>
+             <Link to="/boutiques-officielles"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Boutiques Officielles</button></Link>
+             <Link to="/poi-sites"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">POI Sites</button></Link>
             </div>
           </nav>
           <Routes>
-            <Route path="/parkings-velo" element={<>parking</>} />
+            <Route path="/parkings-velo" element={<MapCard />} />
             <Route path="/evenements-culturels" element={<>evenements-culturels</>} />
             <Route path="/centres-preparation" element={<>centres-preparation</>} />
             <Route path="/aide-volontaires" element={<>aide-volontaires</>} />
@@ -29,7 +30,10 @@ function App() {
             <Route path="/poi-sites" element={<>poi-sites</>} />
           </Routes>
         </div>
-      </Router>
+     
+
+
+    
   );
 }
 
