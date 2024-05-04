@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer, Popup } from "react-leaflet";
 import L, { LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import DATA from '../assets/paris-2024-parkings-velo-spectateurs-en-idf.json'
+
 //import { MapContext, MapContextProps } from "../../../constants/MapContext";
 // import youicon from "../../../assets/epingle.png";
 // import markericon from "../../../assets/broche-de-localisation.png";
@@ -15,10 +15,10 @@ const Map = () => {
   // const { positionOrigin, listSource, locationEnabled,setLocationEnabled } = React.useContext(
   //   MapContext
   // ) as MapContextProps;
- const data = DATA;
+ //const data = DATA;
 
  
-console.log(data)
+//console.log(data)
   // Ref for accessing Leaflet map instance
   const mapRef = useRef<L.Map>(null);
 
