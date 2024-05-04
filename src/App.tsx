@@ -1,17 +1,17 @@
-import { useState } from 'react'
 
-import './App.css'
+
+import './index.css'
 
 function App() {
  
 
   return (
-    <>
+    <div className="body">
       
-      <div className="card bg-red">
+      <div className="flex justify-center">
         hehe soon!!
        </div>
-    </>
+    </div>
   )
 }
 
