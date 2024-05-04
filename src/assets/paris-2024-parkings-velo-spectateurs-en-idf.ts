@@ -1,4 +1,4 @@
-[
+export const DATA = [
   {
     "site": "RGA / PDP",
     "nom_site": "Stade Roland Garros / Parc des Princes",
