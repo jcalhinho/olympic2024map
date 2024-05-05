@@ -10,7 +10,7 @@ import {DATA4} from '../assets/paris-2024-centres-de-preparation-aux-jeux';
 import {DATA5} from '../assets/paris-2024-evenements-olympiade-culturelle';
 import {DATA6} from '../assets/paris-2024-psa-snm';
 import {DATA7} from '../assets/paris-2024-sites-de-competition';
-import {DATA1} from '../assets/carte-aide-volontaires'
+
 //import { MapContext, MapContextProps } from "../../../constants/MapContext";
 // import youicon from "../../../assets/epingle.png";
 // import markericon from "../../../assets/broche-de-localisation.png";
@@ -23,7 +23,7 @@ const Map = () => {
   //   MapContext
   // ) as MapContextProps;
  const bikePark = DATA;
- const carteAideVolontaire = DATA1;
+
  const paralympik = DATA2;
  const shopOfficiel = DATA3;
  const prepaJeux = DATA4;
@@ -33,7 +33,7 @@ const Map = () => {
 
  
 console.log(bikePark)
-console.log(carteAideVolontaire)
+
 console.log(paralympik)
 console.log(shopOfficiel)
 console.log(prepaJeux)
