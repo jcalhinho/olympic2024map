@@ -21,13 +21,13 @@ function App() {
           </nav>
           <Routes>
             <Route path="/parkings-velo" element={<MapCard />} />
-            <Route path="/evenements-culturels" element={<>evenements-culturels</>} />
-            <Route path="/centres-preparation" element={<>centres-preparation</>} />
-            <Route path="/aide-volontaires" element={<>aide-volontaires</>} />
-            <Route path="/sites-competition" element={<>sites-competition</>} />
-            <Route path="/psa-snm" element={<>psa-snm</>} />
-            <Route path="/boutiques-officielles" element={<>boutiques-officielles</>} />
-            <Route path="/poi-sites" element={<>poi-sites</>} />
+            <Route path="/evenements-culturels" element={<MapCard />} />
+            <Route path="/centres-preparation" element={<MapCard />} />
+            <Route path="/aide-volontaires" element={<MapCard />} />
+            <Route path="/sites-competition" element={<MapCard />} />
+            <Route path="/psa-snm" element={<MapCard />} />
+            <Route path="/boutiques-officielles" element={<MapCard />} />
+            <Route path="/poi-sites" element={<MapCard />} />
           </Routes>
         </div>
      
