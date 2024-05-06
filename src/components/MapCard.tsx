@@ -31,15 +31,7 @@ const Map = () => {
  const psaSnm = DATA6;
  const siteCompet = DATA7;
 
- 
-console.log(bikePark)
 
-console.log(paralympik)
-console.log(shopOfficiel)
-console.log(prepaJeux)
-console.log(olympCultur)
-console.log(psaSnm)
-console.log(siteCompet)
   // Ref for accessing Leaflet map instance
   const mapRef = useRef<L.Map>(null);
 

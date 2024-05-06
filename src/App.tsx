@@ -35,7 +35,7 @@ function App() {
         <div>Hello right</div>
       </Drawer>
 
-      <div className="flex flex-col h-full w-full">
+      <div className="flex flex-col h-full w-full ">
         <nav className="bg-transparent flex   w-full">
           <div className="flex items-center w-full">
             <button
