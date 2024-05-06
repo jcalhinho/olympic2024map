@@ -6,8 +6,8 @@ function App() {
   return (
    
      
-        <div className="h-full w-full">
-          <nav className="py-3 mb-4">
+        <div className="flex flex-col h-full w-full">
+          <nav className="flex justify-center py-3 mb-4">
             <div className="">
             <Link to="/parkings-velo"> <button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Parkings Vélo</button></Link>
             <Link to="/evenements-culturels"><button className="whitespace-nowrap bg-white font-normal  py-1 px-2 mx-1  rounded cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active">Événements Culturels</button></Link>

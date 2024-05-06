@@ -123,7 +123,7 @@ const GlobalProbe = () => {
  
   // Render the component
   return (
-    <div className="h-[85vh] w-full ">
+    <div className="h-full w-screen">
      
 
       <div className="leaflet-container  drop-shadow-md rounded">

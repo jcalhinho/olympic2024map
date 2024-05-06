@@ -31,7 +31,7 @@
 }
 @layer base {
   body {
-    @apply flex justify-center h-full w-full ;
+    @apply flex justify-center h-screen w-screen -mb-12 ;
   }
   
 }
