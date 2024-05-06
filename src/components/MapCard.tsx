@@ -123,10 +123,10 @@ const GlobalProbe = () => {
  
   // Render the component
   return (
-    <div className="h-full w-screen">
+    <div className="h-full w-screen flex justify-center items-center">
      
 
-      <div className="leaflet-container  drop-shadow-md rounded">
+      <div className="leaflet-container h-2/3 w-2/3 flex justify-center items-center drop-shadow-md rounded">
         {/* {locationEnabled && ( 
           // MapContainer for Leaflet map*/}
           <MapContainer
