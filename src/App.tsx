@@ -5,6 +5,7 @@ import { OlympicIcon } from "./assets/icons";
 import Drawer from "react-modern-drawer";
 import { useState } from "react";
 import "react-modern-drawer/dist/index.css";
+import MapProvider from "./constants/MapContext";
 
 function App() {
   const [isOpenLeft, setIsOpenLeft] = useState(false);
@@ -102,7 +103,7 @@ function App() {
           <Route path="/evenements-culturels" element={<MapCard />} />
           <Route path="/centres-preparation" element={<MapCard />} />
 
-          <Route path={""} element={<MapCard />} />
+          <Route path={""} element={<MapProvider><MapCard /></MapProvider>} />
           <Route path="/psa-snm" element={<MapCard />} />
           <Route path="/boutiques-officielles" element={<MapCard />} />
           <Route path="/poi-sites" element={<MapCard />} />
