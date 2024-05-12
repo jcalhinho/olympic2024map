@@ -3,13 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer, Popup } from "react-leaflet";
 import L, { LatLngLiteral } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import {DATA} from '../assets/paris-2024-parkings-velo-spectateurs-en-idf';
-import {DATA2} from '../assets/jeux_olympiques_paralympiques_poi_sites';
-import {DATA3} from '../assets/paris-2024-boutiques-officielles';
-import {DATA4} from '../assets/paris-2024-centres-de-preparation-aux-jeux';
-import {DATA5} from '../assets/paris-2024-evenements-olympiade-culturelle';
-import {DATA6} from '../assets/paris-2024-psa-snm';
-import {DATA7} from '../assets/paris-2024-sites-de-competition';
+
 
 //import { MapContext, MapContextProps } from "../../../constants/MapContext";
 // import youicon from "../../../assets/epingle.png";
@@ -22,14 +16,7 @@ const Map = () => {
   // const { positionOrigin, listSource, locationEnabled,setLocationEnabled } = React.useContext(
   //   MapContext
   // ) as MapContextProps;
- const bikePark = DATA;
 
- const paralympik = DATA2;
- const shopOfficiel = DATA3;
- const prepaJeux = DATA4;
- const olympCultur = DATA5;
- const psaSnm = DATA6;
- const siteCompet = DATA7;
 
 
   // Ref for accessing Leaflet map instance
