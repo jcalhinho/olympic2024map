@@ -99,7 +99,7 @@ function App() {
           </div>
         </nav>
         <Routes>
-          <Route path="/parkings-velo" element={<MapCard />} />
+          <Route path="/parkings-veloouou" element={<MapCard />} />
           <Route path="/evenements-culturels" element={<MapCard />} />
           <Route path="/centres-preparation" element={<MapCard />} />
 
