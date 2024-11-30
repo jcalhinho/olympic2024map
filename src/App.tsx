@@ -94,12 +94,12 @@ function App() {
               className="mr-2 ml-auto whitespace-nowrap bg-white font-normal  py-1 px-2    cursor-pointer shadow-neumorphism transition duration-200  active:shadow-neumorphism-active "
               onClick={toggleDrawerRight}
             >
-              Language
+              Languagegjhgjhg
             </button>
           </div>
         </nav>
         <Routes>
-          <Route path="/parkings-veloouou" element={<MapCard />} />
+          <Route path="/parkings-velo" element={<MapCard />} />
           <Route path="/evenements-culturels" element={<MapCard />} />
           <Route path="/centres-preparation" element={<MapCard />} />
 
