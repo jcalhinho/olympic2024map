@@ -99,14 +99,14 @@ function App() {
           </div>
         </nav>
         <Routes>
-          <Route path="/parkings-velo" element={<MapCard />} />
-          <Route path="/evenements-culturels" element={<MapCard />} />
-          <Route path="/centres-preparation" element={<MapCard />} />
+          <Route path="/parkings-velo" element={<>toto</>} />
+          <Route path="/evenements-culturels" element={<>toto2</>} />
+          <Route path="/centres-preparation" element={<>toto3</>} />
 
-          <Route path={""} element={<MapCard />} />
-          <Route path="/psa-snm" element={<MapCard />} />
-          <Route path="/boutiques-officielles" element={<MapCard />} />
-          <Route path="/poi-sites" element={<MapCard />} />
+          <Route path={""} element={<></>} />
+          <Route path="/psa-snm" element={<></>} />
+          <Route path="/boutiques-officielles" element={<></>} />
+          <Route path="/poi-sites" element={<></>} />
         </Routes>
       </div>
     </>
