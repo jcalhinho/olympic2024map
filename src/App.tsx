@@ -15,23 +15,23 @@ function App() {
        
         <nav>
           <Link to="/" className="mx-2 hover:underline">
-            Accueil
+            Home
           </Link>
-          <Link to="/projets" className="mx-2 hover:underline">
-            Projets
+          <Link to="/projects" className="mx-2 hover:underline">
+            Projects
           </Link>
-          <Link to="/a-propos" className="mx-2 hover:underline">
-            À Propos
+          <Link to="/who" className="mx-2 hover:underline">
+            Who?
           </Link>
         </nav>
       </header>
 
       {/* Routes de l'application */}
-      <main className="h-screen">
+      <main className="h-screen overflow-hidden ">
         <Routes>
           <Route path="/" element={<Accueil />} />
-          <Route path="/projets" element={<ProjectsSection />} />
-          <Route path="/a-propos" element={<AboutSection />} />
+          <Route path="/projects" element={<ProjectsSection />} />
+          <Route path="/who" element={<AboutSection />} />
         </Routes>
       </main>
     </div>
@@ -40,7 +40,7 @@ function App() {
 
 function Accueil() {
   return (
-    <div className="h-full w-full">
+    <div className="h-[calc(100vh)] w-full">
       <ProjectsSection />
     </div>
   );

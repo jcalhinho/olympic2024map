@@ -2,10 +2,10 @@ import React from "react";
 
 const AboutSection = () => {
   return (
-    <div className="p-4 bg-gray-200">
-      <h2 className="text-2xl font-bold text-center mb-4">À Propos</h2>
+    <div className="mt-8 h-full p-4 bg-gray-600 text-white">
+      <h2 className="text-2xl font-bold text-center mb-4">Who?</h2>
       <p>
-        Je suis développeur spécialisé en React et React Three Fiber, avec une passion pour les interfaces interactives et immersives.
+        dev: jcalhinho@gmail.com 
       </p>
     </div>
   );
