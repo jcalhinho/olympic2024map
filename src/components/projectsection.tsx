@@ -452,7 +452,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
         anchorX="center"
         anchorY="middle"
       >
-        Item Source
+        Source
       </Text>
       <Text
         position={middleTitlePosition}
@@ -461,7 +461,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
         anchorX="center"
         anchorY="middle"
       >
-        Item Source/Item Target
+        Source/Target
       </Text>
       <Text
         position={targetTitlePosition}
@@ -470,7 +470,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
         anchorX="center"
         anchorY="middle"
       >
-        Item Target
+        Target
       </Text>
 
       {/* Rendu des Nœuds */}
@@ -553,7 +553,7 @@ const MultiProto: React.FC<MultiProtoProps> = ({
       style={{ background: 'linear-gradient(to bottom, #000428, #004e92)' }} // Fond dégradé sombre
       shadows
     >
-      <PerspectiveCamera makeDefault position={[0, 0, 2400]} far={100000} />
+      <PerspectiveCamera makeDefault position={[0, 0, 1200]} far={100000} />
       <ambientLight intensity={0.3} />
       <directionalLight
         castShadow
