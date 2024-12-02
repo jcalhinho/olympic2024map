@@ -1,6 +1,6 @@
+// src/components/projectsection.tsx
 
-
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -42,11 +42,12 @@ export interface SankeyDiagram3DProps {
   nodes: NodeType[];
   links: LinkType[];
   setHoveredNode: React.Dispatch<React.SetStateAction<NodeType | null>>;
-  setHighlightedNode: React.Dispatch<React.SetStateAction<string | null>>;
+  setHighlightedNode?: React.Dispatch<React.SetStateAction<string | null>>;
   highlightedNode: string | null;
   hoveredNode: NodeType | null;
   spacing: { x: number; y: number; z: number };
   isRotating: boolean;
+  toggleHighlight: (node: NodeType) => void; // Ajouter cette prop
 }
 
 export interface MultiProtoProps {
@@ -60,13 +61,14 @@ export interface MultiProtoProps {
   setHighlightedNode: React.Dispatch<React.SetStateAction<string | null>>;
   spacing: { x: number; y: number; z: number };
   isRotating: boolean;
+  toggleHighlight: (node: NodeType) => void; // Ajouter cette prop
 }
 
 export interface NodeListProps {
   nodes: NodeType[];
   links: LinkType[];
   onHoverNode: (node: NodeType | null) => void;
-  onClickNode: (node: NodeType | null) => void;
+  onClickNode: (node: NodeType) => void; // Modifier le type pour éviter null
   highlightedNode: string | null;
 }
 
@@ -130,7 +132,7 @@ const generateData = (
     const sourceIndex = Math.floor(Math.random() * totalNodes);
     let targetIndex = Math.floor(Math.random() * totalNodes);
 
-    // S'assurer que la source et la cible ne sont pas les mêmes
+    // Assurer que la source et la cible ne sont pas les mêmes
     while (targetIndex === sourceIndex) {
       targetIndex = Math.floor(Math.random() * totalNodes);
     }
@@ -250,11 +252,11 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
   nodes,
   links,
   setHoveredNode,
-  setHighlightedNode,
   highlightedNode,
   hoveredNode,
   spacing,
   isRotating,
+  toggleHighlight, // Recevoir la prop
 }) => {
   // Mémoriser nodePositions avec useMemo
   const nodePositions = useMemo(() => {
@@ -280,7 +282,6 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
       nodeDegrees[link.source] = (nodeDegrees[link.source] || 0) + 1;
       nodeDegrees[link.target] = (nodeDegrees[link.target] || 0) + 1;
     });
-
 
     // Assigner des positions aux nœuds
     nodes.forEach((node) => {
@@ -377,34 +378,35 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
 
   // Calculer les positions des titres et ajuster leur hauteur avec useMemo
   const titleYOffset = 10; // Ajuster cette valeur pour élever les textes
+  const numRows = Math.ceil(Math.sqrt(nodes.length / 3));
   const sourceTitlePosition = useMemo(
     () =>
       new THREE.Vector3(
         -spacing.x,
-        -(Math.ceil(Math.sqrt(nodes.length / 3)) * (8 + spacing.y)) / 2 - 10 + titleYOffset,
+        -(numRows * (8 + spacing.y)) / 2 - 10 + titleYOffset,
         0
       ),
-    [spacing.x, spacing.y, nodes.length]
+    [spacing.x, spacing.y, numRows]
   );
 
   const middleTitlePosition = useMemo(
     () =>
       new THREE.Vector3(
         0,
-        -(Math.ceil(Math.sqrt(nodes.length / 3)) * (8 + spacing.y)) / 2 - 10 + titleYOffset,
+        -(numRows * (8 + spacing.y)) / 2 - 10 + titleYOffset,
         0
       ),
-    [spacing.y, nodes.length]
+    [spacing.y, numRows]
   );
 
   const targetTitlePosition = useMemo(
     () =>
       new THREE.Vector3(
         spacing.x,
-        -(Math.ceil(Math.sqrt(nodes.length / 3)) * (8 + spacing.y)) / 2 - 10 + titleYOffset,
+        -(numRows * (8 + spacing.y)) / 2 - 10 + titleYOffset,
         0
       ),
-    [spacing.x, spacing.y, nodes.length]
+    [spacing.x, spacing.y, numRows]
   );
 
   // Gérer la rotation
@@ -497,13 +499,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
             label={node.item}
             onHover={() => setHoveredNode(node)}
             onUnhover={() => setHoveredNode(null)}
-            onClick={() => {
-              if (highlightedNode === node.item) {
-                setHighlightedNode(null);
-              } else {
-                setHighlightedNode(node.item);
-              }
-            }}
+            onClick={() => toggleHighlight(node)} // Utiliser toggleHighlight
             visible={isVisible}
             isHighlighted={highlightedNode === node.item}
           />
@@ -550,6 +546,7 @@ const MultiProto: React.FC<MultiProtoProps> = ({
   setHighlightedNode,
   spacing,
   isRotating,
+  toggleHighlight, // Recevoir la prop
 }) => {
   return (
     <Canvas
@@ -581,6 +578,7 @@ const MultiProto: React.FC<MultiProtoProps> = ({
         hoveredNode={hoveredNode}
         spacing={spacing}
         isRotating={isRotating}
+        toggleHighlight={toggleHighlight} // Passer la fonction
       />
       <OrbitControls />
     </Canvas>
@@ -628,11 +626,7 @@ const NodeList: React.FC<NodeListProps> = ({ nodes, links, onHoverNode, onClickN
   };
 
   const handleClick = (node: NodeType) => {
-    if (node.item === highlightedNode) {
-      onClickNode(null); // Réinitialiser si déjà mis en évidence
-    } else {
-      onClickNode(node); // Mettre en évidence le nœud cliqué
-    }
+    onClickNode(node); // Utiliser la fonction de basculer
   };
 
   return (
@@ -685,7 +679,7 @@ const SpacingControls: React.FC<SpacingControlsProps> = ({ spacing, setSpacing }
   };
 
   return (
-    <div className="absolute top-4 left-4 p-4 bg-white bg-opacity-75 rounded shadow">
+    <div className="absolute top-10 left-0 p-4 bg-white bg-opacity-75 rounded shadow">
       <h2 className="text-xl font-bold mb-4">Contrôle des Espacements</h2>
       <div className="mb-4">
         <label htmlFor="spacingX" className="block text-sm font-medium text-gray-700">
@@ -760,17 +754,26 @@ const ProjectsSection: React.FC = () => {
   const [hoveredNode, setHoveredNode] = useState<NodeType | null>(null);
   const [highlightedNode, setHighlightedNode] = useState<string | null>(null);
   const [spacing, setSpacing] = useState<{ x: number; y: number; z: number }>({
-    x: 800, // Valeurs initiales
-    y: 56,
-    z: 48,
+    x: 500, // Valeurs initiales
+    y: 80,
+    z: 80,
   });
+
+  // Fonction de basculer la mise en évidence
+  const toggleHighlight = useCallback((node: NodeType) => {
+    if (highlightedNode === node.item) {
+      setHighlightedNode(null);
+    } else {
+      setHighlightedNode(node.item);
+    }
+  }, [highlightedNode]);
 
   const toggleRotation = () => {
     setIsRotating((prev) => !prev);
   };
 
   return (
-    <div className="relative h-full flex bg-gray-800">
+    <div className="relative  flex bg-gray-800">
       {/* Graphe 3D */}
       <div className="flex-grow">
         <MultiProto
@@ -781,22 +784,17 @@ const ProjectsSection: React.FC = () => {
           setHighlightedNode={setHighlightedNode}
           spacing={spacing}
           isRotating={isRotating}
+          toggleHighlight={toggleHighlight} // Passer la fonction
         />
       </div>
 
       {/* Liste des Nœuds */}
-      <div className="absolute top-0 right-0 h-full overflow-y-auto bg-gray-900 bg-opacity-75 p-4">
+      <div className="absolute top-8 right-4 h-full overflow-y-auto bg-gray-900 bg-opacity-75 p-4 text-white">
         <NodeList
           nodes={DATA.nodes}
           links={DATA.links}
           onHoverNode={setHoveredNode}
-          onClickNode={(node) => {
-            if (node && node.item === highlightedNode) {
-              setHighlightedNode(null);
-            } else if (node) {
-              setHighlightedNode(node.item);
-            }
-          }}
+          onClickNode={toggleHighlight} // Utiliser la fonction partagée
           highlightedNode={highlightedNode}
         />
       </div>
@@ -806,10 +804,10 @@ const ProjectsSection: React.FC = () => {
 
       {/* Contrôles de Génération des Données */}
       <div className="absolute bottom-0 left-0 p-4 bg-white bg-opacity-75 rounded-tl-lg rounded-tr-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Générer des Données</h2>
+        <h2 className="text-xl font-bold mb-4">data generate</h2>
         <div className="mb-4">
           <label htmlFor="numberOfSourceNodes" className="block text-sm font-medium text-gray-700">
-            Nombre de Nœuds Sources:
+            source nodes:
           </label>
           <input
             type="number"
@@ -823,7 +821,7 @@ const ProjectsSection: React.FC = () => {
         </div>
         <div className="mb-4">
           <label htmlFor="numberOfMiddleNodes" className="block text-sm font-medium text-gray-700">
-            Nombre de Nœuds Source/Target:
+            source/target nodes:
           </label>
           <input
             type="number"
@@ -837,7 +835,7 @@ const ProjectsSection: React.FC = () => {
         </div>
         <div className="mb-4">
           <label htmlFor="numberOfTargetNodes" className="block text-sm font-medium text-gray-700">
-            Nombre de Nœuds Cibles:
+           target nodes:
           </label>
           <input
             type="number"
@@ -851,7 +849,7 @@ const ProjectsSection: React.FC = () => {
         </div>
         <div className="mb-4">
           <label htmlFor="numberOfLinks" className="block text-sm font-medium text-gray-700">
-            Nombre de Liens:
+            links:
           </label>
           <input
             type="number"
@@ -866,7 +864,7 @@ const ProjectsSection: React.FC = () => {
       </div>
 
       {/* Bouton de Contrôle de la Rotation */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
         <button
           onClick={toggleRotation}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none shadow"

@@ -27,7 +27,7 @@ function App() {
       </header>
 
       {/* Routes de l'application */}
-      <main className="h-full mt-16">
+      <main className="h-screen">
         <Routes>
           <Route path="/" element={<Accueil />} />
           <Route path="/projets" element={<ProjectsSection />} />
