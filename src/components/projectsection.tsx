@@ -773,7 +773,7 @@ const ProjectsSection: React.FC = () => {
   };
 
   return (
-    <div className="relative  flex bg-gray-800">
+    <div className="relative h-full flex bg-gray-800">
       {/* Graphe 3D */}
       <div className="flex-grow">
         <MultiProto
