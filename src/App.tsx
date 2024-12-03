@@ -11,7 +11,7 @@ function App() {
   return (
     <div className="h-screen w-screen">
       {/* En-tête de navigation */}
-      <header className="flex justify-end items-center px-4 py-2 bg-gray-800 text-white fixed top-0 left-0 right-0 z-10">
+      <header style={{ background: 'linear-gradient(to bottom,#004e92 ,#000428 )' }} className="flex justify-end items-center px-4 py-2 bg-gray-800 text-white fixed top-0 left-0 right-0 z-10">
        
         <nav>
           <Link to="/" className="mx-2 hover:underline">
@@ -32,6 +32,7 @@ function App() {
           <Route path="/" element={<Accueil />} />
           <Route path="/projects" element={<ProjectsSection />} />
           <Route path="/who" element={<AboutSection />} />
+          
         </Routes>
       </main>
     </div>
