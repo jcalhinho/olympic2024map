@@ -1000,3 +1000,4 @@ const ProjectsSection: React.FC = () => {
 };
 
 export default ProjectsSection;
+
