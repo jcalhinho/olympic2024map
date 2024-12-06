@@ -1,3 +1,4 @@
+// /Users/jcalhinho/Documents/olympic2024map/src/App.tsx
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import AboutSection from './components/aboutsection';

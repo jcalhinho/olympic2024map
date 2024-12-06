@@ -1,15 +1,10 @@
-
+// /Users/jcalhinho/Documents/olympic2024map/src/components/FallingDice.tsx
+// Ce fichier n'est plus utilisé, mais on le garde inchangé car vous avez demandé de tout fournir.
 import React, { useMemo } from 'react';
 import { RigidBody } from '@react-three/rapier';
-import * as THREE from 'three';
 import { RoundedBox } from '@react-three/drei';
 
-// Composant pour un petit dé qui tombe
 const FallingDie: React.FC<{ position: [number, number, number] }> = ({ position }) => {
-  // Taille du petit dé
-  
-
-  // Rotation initiale aléatoire
   const initialRotation = useMemo(() => [
     Math.random() * Math.PI * 2,
     Math.random() * Math.PI * 2,
@@ -21,14 +16,13 @@ const FallingDie: React.FC<{ position: [number, number, number] }> = ({ position
       colliders="cuboid"
       position={position}
       rotation={initialRotation}
-      restitution={0.6} // Rebond légèrement
+      restitution={0.6}
       friction={0.5}
     >
       <mesh castShadow receiveShadow>
-        
         <RoundedBox args={[5, 5, 5]} radius={0.5} smoothness={4} castShadow receiveShadow>
-        <meshStandardMaterial color="lightblue" />
-      </RoundedBox>{/* Or jaune pour les petits dés */}
+          <meshStandardMaterial color="lightblue" />
+        </RoundedBox>
       </mesh>
     </RigidBody>
   );
