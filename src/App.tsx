@@ -1,5 +1,4 @@
-// /Users/jcalhinho/Documents/olympic2024map/src/App.tsx
-import React from 'react';
+
 import { Routes, Route, Link } from 'react-router-dom';
 import AboutSection from './components/aboutsection';
 import ProjectsSection from './components/projectsection';
@@ -11,7 +10,7 @@ function App() {
     <div className="h-screen w-screen">
       {/* En-tête de navigation */}
       <header
-        style={{ background: 'linear-gradient(to bottom, #004e92, #000428)' }}
+        style={{ background: 'linear-gradient(to bottom, #87CEEB, #4682B4)' }}
         className="flex justify-end items-center px-4 py-2 bg-gray-800 text-white fixed top-0 left-0 right-0 z-10"
       >
         <nav className="flex space-x-4">

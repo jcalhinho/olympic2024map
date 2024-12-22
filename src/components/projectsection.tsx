@@ -569,17 +569,18 @@ const MultiProto: React.FC<MultiProtoProps> = ({
       shadows
     >
       <PerspectiveCamera makeDefault position={[0, 0, 1200]} far={100000} />
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.5} />
       <directionalLight
         castShadow
         intensity={1}
-        position={[10, 20, 10]}
+        position={[-10, 20, 0]}
+        rotation={[0,20,20]}
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-far={100}
         shadow-camera-near={0.1}
         shadow-camera-top={50}
-        shadow-camera-bottom={-50}
+        shadow-camera-bottom={50}
         shadow-camera-left={-50}
         shadow-camera-right={50}
       />

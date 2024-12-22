@@ -1,152 +1,123 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+
+
+// src/components/Home.tsx
+import React, { useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Text } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
-import * as THREE from 'three';
-import GroundDie from './GroundDice';
-const AnimatedCamera: React.FC = () => {
-  const cameraRef = useRef<THREE.PerspectiveCamera>(null); // Référence pour manipuler la caméra
-  const [zoomOut, setZoomOut] = useState(false); // État pour déclencher le zoom arrière
-
-  // Fonction pour déclencher le zoom
-  const triggerZoomOut = () => setZoomOut(true);
-
-  // Animation du zoom arrière
-  useFrame(() => {
-    if (zoomOut && cameraRef.current) {
-      const camera = cameraRef.current;
-
-      // Recule progressivement sur l'axe Z
-      if (camera.position.y< 75) {
-        camera.position.y += 0.5; // Ajuste la vitesse d'animation
-      } else {
-        setZoomOut(false); // Arrête l'animation quand on atteint la cible
-      }
-    }
-  });
-
-  // useEffect(() => {
-  //   // Déclenche automatiquement le zoom arrière après un délai (par exemple 1 seconde)
-  //   const timeout = setTimeout(triggerZoomOut, 3400);
-  //   return () => clearTimeout(timeout); // Nettoyage
-  // }, []);
-
-  return (
-    <PerspectiveCamera
-      makeDefault
-      ref={cameraRef} // Référence pour manipuler la caméra
-      position={[0, 75, 0]} // Position initiale
-      fov={75}
-     // rotation={[-Math.PI / 2, 0, 0]}
-    />
-  );
-};
-// const Home: React.FC = () => {
-
-//   return (
-//     <Canvas
-//       shadows
-//       style={{
-//         height: '100vh',
-//         background: 'linear-gradient(to bottom, #000428, #004e92)',
-//       }}
-//     >
-//       {/* Caméra vue aérienne */}
-//       {/* <PerspectiveCamera
-//         makeDefault
-//         position={[0, 40, 0]}
-//         fov={75}
-//         rotation={[-Math.PI / 2, 0, 0]}
-//       /> */}
-// <AnimatedCamera />
-//       {/* Lumières */}
-//       <ambientLight intensity={0.8} />
-//       <directionalLight
-//         position={[55, 85, 120]}
-//         intensity={1.2}
-//         castShadow
-//         shadow-mapSize-width={2048}
-//         shadow-mapSize-height={2048}
-//       />
-
-//       {/* Monde Physique */}
-//       <Physics gravity={[0, -9.81, 0]}>
-//         <GroundDie />
-//       </Physics>
-
-//       {/* Contrôles de la caméra */}
-//       <OrbitControls enablePan={true} enableZoom={true} />
-//     </Canvas>
-//   );
-// };
-
-// export default Home;
+import GroundDice from './GroundDice';
+import { Euler } from 'three';
 
 const Home: React.FC = () => {
+  // État de rotation cible
+  const [targetRotation, setTargetRotation] = useState<Euler>(new Euler(0, 0, 0, 'XYZ'));
+
+  // Handlers pour la rotation
+  const rotateUp = () => {
+    setTargetRotation((prev) => new Euler(prev.x - Math.PI / 2, prev.y, prev.z, 'XYZ'));
+  };
+
+  const rotateDown = () => {
+    setTargetRotation((prev) => new Euler(prev.x + Math.PI / 2, prev.y, prev.z, 'XYZ'));
+  };
+
+  const rotateLeft = () => {
+    setTargetRotation((prev) => new Euler(prev.x, prev.y + Math.PI / 2, prev.z, 'XYZ'));
+  };
+
+  const rotateRight = () => {
+    setTargetRotation((prev) => new Euler(prev.x, prev.y - Math.PI / 2, prev.z, 'XYZ'));
+  };
+
+  // Composant pour les boutons de rotation avec labels
+  const RotationButton: React.FC<{
+    label: string;
+    position: [number, number, number];
+    onClick: () => void;
+  }> = ({ label, position, onClick }) => {
+    return (
+      <mesh position={position} onClick={onClick} castShadow receiveShadow>
+        <boxGeometry args={[2, 1, 0.2]} />
+        <meshStandardMaterial color="orange" />
+        <Text
+          position={[0, 0, 0.3]}
+          fontSize={0.5}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+        >
+          {label}
+        </Text>
+      </mesh>
+    );
+  };
+
   return (
     <Canvas
       shadows
+      camera={{ position: [0, 15, 30], fov: 60 }}
       style={{
         height: '100vh',
-        background: 'linear-gradient(to bottom, #000428, #004e92)',
+        width: '100vw',
+        background: 'linear-gradient(to bottom, #87CEEB, #4682B4)', // Fond bleu ciel
       }}
     >
-      {/* Caméra vue aérienne */}
-      <AnimatedCamera />
-
       {/* Lumières */}
-      
-      {/* Lumière Ambiante */}
-      {/* Éclaire uniformément toute la scène, utile pour un éclairage global de base */}
-      <ambientLight intensity={0.4} />
-
-      {/* Lumière Directionnelle */}
-      {/* Simule une lumière parallèle, comme celle du soleil */}
+      <ambientLight intensity={0.5} />
       <directionalLight
-        position={[55, 85, 120]} // Position de la lumière
-        intensity={1.2} // Ajuste l'intensité (1.0 = standard)
-        castShadow // Active les ombres projetées
-        shadow-mapSize-width={2048} // Résolution des ombres
-        shadow-mapSize-height={2048}
-      />
-
-      {/* Lumière Ponctuelle */}
-      {/* Émet de la lumière dans toutes les directions depuis un point */}
-      {/* <pointLight
-        position={[10, 20, 10]} // Position de la lumière
-        intensity={1} // Intensité lumineuse
-        distance={50} // Distance maximale d'influence
-        decay={2} // Diminution progressive
-        color="white" // Couleur de la lumière
-      /> */}
-
-      {/* Lumière Projecteur */}
-      {/* Concentre la lumière dans une direction spécifique */}
-      {/* <spotLight
-        position={[0, 0, 0]} // Position de la lumière
-        intensity={1.5} // Intensité lumineuse
-        angle={Math.PI / 6} // Angle d'ouverture du cône
-        penumbra={0.5} // Douceur des bords du cône
-        castShadow // Active les ombres projetées
+        position={[10, 20, 10]}
+        intensity={1.5}
+        castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-      /> */}
+        shadow-camera-far={500}
+        shadow-camera-left={-100}
+        shadow-camera-right={100}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
+      />
 
-      {/* Lumière Hémisphère */}
-      {/* Simule un éclairage naturel avec lumière du ciel et réflexion du sol */}
-      {/* <hemisphereLight
-       // skyColor={'#87CEEB'} // Couleur du ciel
-        groundColor={'#2E8B57'} // Couleur du sol réfléchi
-        intensity={0.6} // Intensité lumineuse
-      /> */}
-
-      {/* Monde Physique */}
+      {/* Monde physique avec gravité */}
       <Physics gravity={[0, -9.81, 0]}>
-        <GroundDie />
+        <GroundDice targetRotation={targetRotation} />
       </Physics>
 
       {/* Contrôles de la caméra */}
-      <OrbitControls enablePan={true} enableZoom={true} />
+      <OrbitControls
+        enableZoom={true}
+        enablePan={true}
+        minPolarAngle={0} // Permet l'inclinaison complète vers le bas
+        maxPolarAngle={Math.PI} // Permet l'inclinaison complète vers le haut
+        target={[0, 0, 0]} // Centre les contrôles sur le cube
+      />
+
+      {/* Boutons de rotation autour du cube */}
+      <group>
+        {/* Bouton Up */}
+        <RotationButton
+          label="↑"
+          position={[0, 10, 0]} // Position ajustée pour être autour du cube
+          onClick={rotateUp}
+        />
+        {/* Bouton Down */}
+        <RotationButton
+          label="↓"
+          position={[0, -10, 0]} // Position ajustée pour être autour du cube
+          onClick={rotateDown}
+        />
+        {/* Bouton Left */}
+        <RotationButton
+          label="←"
+          position={[-10, 0, 0]} // Position ajustée pour être autour du cube
+          onClick={rotateLeft}
+        />
+        {/* Bouton Right */}
+        <RotationButton
+          label="→"
+          position={[10, 0, 0]} // Position ajustée pour être autour du cube
+          onClick={rotateRight}
+        />
+      </group>
     </Canvas>
   );
 };
