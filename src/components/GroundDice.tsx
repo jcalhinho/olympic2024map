@@ -1,4 +1,3 @@
-
 import React, { useRef, useMemo, useState } from 'react';
 import { RigidBody } from '@react-three/rapier';
 import { RoundedBox } from '@react-three/drei';
@@ -8,7 +7,14 @@ import { extend, Object3DNode, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import myfont from '../../public/fonts/helvetiker_regular.typeface.json';
 import { useNavigate } from 'react-router-dom';
-
+type RigidBodyApi = {
+  translation: () => { x: number; y: number; z: number };
+  setTranslation: (translation: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
+  setLinvel: (linvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
+  setAngvel: (angvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
+  setNextKinematicRotation: (rotation: THREE.Quaternion) => void;
+  // Ajoutez d'autres méthodes si nécessaire
+};
 // Étendre TextGeometry dans React Three Fiber
 extend({ TextGeometry });
 
@@ -24,8 +30,8 @@ interface GroundDiceProps {
 }
 
 const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
-  const cubeRef = useRef(null);
-  const lettersRefs = useRef([]);
+  const cubeRef = useRef<RigidBodyApi | null>(null);
+  const lettersRefs = useRef<RigidBodyApi[]>([]);
   const currentRotation = useRef(new THREE.Euler(0, 0, 0, 'XYZ'));
 
   const [letters] = useState<string[]>(['D', 'A', 'T', 'A', 'V', 'I', 'Z']);
@@ -79,7 +85,7 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
         position={position}
         rotation={rotation}
         key={key}
-        ref={(ref) => {
+        ref={(ref: RigidBodyApi | null) => {
           if (ref && !lettersRefs.current.includes(ref)) {
             lettersRefs.current.push(ref); // Ajouter la référence des lettres
           }
@@ -146,7 +152,7 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
         </RoundedBox>
       </RigidBody>
 
-     
+    
 
       {/* Lettres */}
       <group>
