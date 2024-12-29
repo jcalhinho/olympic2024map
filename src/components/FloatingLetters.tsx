@@ -1,10 +1,13 @@
 import React, { useRef, useMemo } from 'react';
-import { RigidBody } from '@react-three/rapier';
+import { RigidBody, CollisionEnterPayload } from '@react-three/rapier';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { extend, Object3DNode, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import myfont from '../../public/fonts/helvetiker_regular.typeface.json';
+import type { RigidBody as RapierRigidBody } from '@dimforge/rapier3d-compat';
+
+export type RigidBody = RapierRigidBody; // Use the library's type directly
 
 extend({ TextGeometry });
 
@@ -14,13 +17,10 @@ declare module '@react-three/fiber' {
   }
 }
 
-export type RigidBody = {
-  translation: () => { x: number; y: number; z: number };
-  setTranslation: (translation: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
-  setLinvel: (linvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
-  setAngvel: (angvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
-  setNextKinematicRotation: (rotation: THREE.Quaternion) => void;
-};
+interface UserData {
+  type: string;
+  id?: string;
+}
 
 interface FloatingLettersProps {
   letters: string[];
@@ -28,14 +28,13 @@ interface FloatingLettersProps {
 }
 
 const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestroyed }) => {
-  const lettersRefs = useRef<RigidBody[]>([]);
+  const lettersRefs = useRef<RapierRigidBody[]>([]);
   const font = useMemo(() => new FontLoader().parse(myfont), []);
 
-  // Déplacer useFrame au niveau supérieur du composant
   useFrame(() => {
     lettersRefs.current.forEach((letterRef, index) => {
       const position = letterRef.translation();
-      if (position.y < -100) { // Seuil de réinitialisation
+      if (position.y < -100) {
         letterRef.setTranslation({ x: (index - 4) * 1.1, y: 20, z: 0 }, true);
         letterRef.setLinvel({ x: 0, y: 0, z: 0 }, true);
         letterRef.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -49,15 +48,17 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
     rotation: [number, number, number],
     key: string
   ) => {
-    const handleCollision = (id: string) => (event) => {
-        console.log(`Collision Event Triggered for Letter: ${id}`);
-        const otherData = event.other.rigidBody.userData;
-        console.log('Other RigidBody Data:', otherData);
-        if (otherData?.type === "brick") {
-          console.log(`Collision détectée entre la lettre ${id} et la brique ${otherData.id}`);
-          onBrickDestroyed(id);
-        }
-      };
+    const handleCollision = (id: string) => (event: CollisionEnterPayload) => {
+      const otherRigidBody = event.other.rigidBody;
+
+      if (!otherRigidBody) return;
+
+      const otherData = otherRigidBody.userData as UserData | undefined;
+
+      if (otherData?.type === "brick") {
+        onBrickDestroyed(id);
+      }
+    };
 
     return (
       <RigidBody
@@ -72,7 +73,7 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
         onCollisionEnter={handleCollision(key)}
         ref={(ref) => {
           if (ref && !lettersRefs.current.includes(ref)) {
-            lettersRefs.current.push(ref as unknown as RigidBody);
+            lettersRefs.current.push(ref);
           }
         }}
       >
