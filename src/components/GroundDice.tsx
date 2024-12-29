@@ -1,123 +1,66 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef,  useState } from 'react';
 import { RigidBody } from '@react-three/rapier';
 import { RoundedBox } from '@react-three/drei';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+
 import { extend, Object3DNode, ThreeEvent, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import myfont from '../../public/fonts/helvetiker_regular.typeface.json';
-import { useNavigate } from 'react-router-dom';
 
-// Étendre TextGeometry dans React Three Fiber
+import { useNavigate } from 'react-router-dom';
+import WallOfBricks from './WallOfBricks';
+import FloatingLetters from './FloatingLetters';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+
 extend({ TextGeometry });
 
-// Déclaration pour intégrer TextGeometry dans les éléments Three Fiber
 declare module '@react-three/fiber' {
   interface ThreeElements {
     textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
   }
 }
 
-// Définir le type RigidBodyApi localement
 export type RigidBodyApi = {
   translation: () => { x: number; y: number; z: number };
   setTranslation: (translation: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
   setLinvel: (linvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
   setAngvel: (angvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
   setNextKinematicRotation: (rotation: THREE.Quaternion) => void;
-  // Ajoutez d'autres méthodes si nécessaire
 };
 
 interface GroundDiceProps {
-  targetRotation: THREE.Euler; // Rotation cible passée depuis App.tsx
+  targetRotation: THREE.Euler;
 }
 
 const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
-  // Utiliser RigidBodyApi comme type pour les refs
   const cubeRef = useRef<RigidBodyApi | null>(null);
-  const lettersRefs = useRef<RigidBodyApi[]>([]);
   const currentRotation = useRef(new THREE.Euler(0, 0, 0, 'XYZ'));
-
   const [letters] = useState<string[]>(['D', 'A', 'T', 'A', 'V', 'I', 'Z']);
+  const [bricks, setBricks] = useState<string[]>([]);
+  const navigate = useNavigate();
+
   
-  // Charger et parser la police une seule fois
-  const font = useMemo(() => new FontLoader().parse(myfont), []);
+  // Fonction pour gérer la destruction d'une brique
+  const handleBrickDestroyed = (id: string) => {
+    setBricks((prev) => prev.filter((brickId) => brickId !== id));
+    console.log(bricks)
+  };
 
-  const navigate = useNavigate(); // Hook pour la navigation
-
-  // const resetLetter = (index: number) => {
-  //   // Fonction de réinitialisation si nécessaire
-  //   // (Actuellement, elle ne modifie pas l'état)
-  // };
-
-  useFrame(() => {
-    lettersRefs.current.forEach((letterRef, index) => {
-      // Utiliser Type Assertion pour accéder aux méthodes de RigidBodyApi
-      const rbApi = letterRef as unknown as RigidBodyApi;
-      const position = rbApi.translation();
-      if (position.y < -100) { // Seuil de réinitialisation
-        rbApi.setTranslation({ x: (index - 4) * 0.90, y: 20, z: 0 }, true);
-        rbApi.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        rbApi.setAngvel({ x: 0, y: 0, z: 0 }, true);
-      }
-    });
-  });
-
-  // Appliquer la rotation cible au cube de manière fluide
+  // Interpoler la rotation du cube
   useFrame(() => {
     if (cubeRef.current) {
-      // Interpoler progressivement vers la rotation cible
       currentRotation.current.x += (targetRotation.x - currentRotation.current.x) * 0.10;
       currentRotation.current.y += (targetRotation.y - currentRotation.current.y) * 0.10;
       currentRotation.current.z += (targetRotation.z - currentRotation.current.z) * 0.10;
 
       const quaternion = new THREE.Quaternion().setFromEuler(currentRotation.current);
-      
-      // Utiliser Type Assertion pour accéder à la méthode de RigidBodyApi
-      const rbApi = cubeRef.current as unknown as {
-        setNextKinematicRotation: (rotation: THREE.Quaternion) => void;
-      };
-      
-      rbApi.setNextKinematicRotation(quaternion);
+      cubeRef.current.setNextKinematicRotation(quaternion);
     }
   });
 
-  // Fonction pour créer une lettre
-  const createLetter = (
-    text: string,
-    position: [number, number, number],
-    rotation: [number, number, number],
-    key: string
-  ) => {
-    return (
-      <RigidBody
-        colliders="hull" // Colliders adaptés à la forme du texte
-        restitution={0} // Réglage du rebond
-        friction={0.5} // Réglage de la friction pour ralentir les glissements
-        mass={0.2}
-        position={position}
-        rotation={rotation}
-        key={key}
-        ref={(ref) => {
-          if (ref && !lettersRefs.current.includes(ref as unknown as RigidBodyApi)) {
-            lettersRefs.current.push(ref as unknown as RigidBodyApi); // Ajouter la référence des lettres
-          }
-        }}
-      >
-        <mesh castShadow>
-          <textGeometry args={[text, { font, size: 1.2, depth: 0.2 }]} />
-          <meshStandardMaterial color="red" />
-        </mesh>
-      </RigidBody>
-    );
-  };
-
-  // Fonction pour gérer le clic sur une face du cube
+  // Gestion des clics sur le cube
   const handleCubeClick = (event: ThreeEvent<MouseEvent>) => {
     const faceNormal = event.face?.normal;
     let face = '';
 
-    // Déterminer quelle face a été cliquée en fonction de la normale
     if (faceNormal?.x === 1) face = 'right';
     else if (faceNormal?.x === -1) face = 'left';
     else if (faceNormal?.y === 1) face = 'top';
@@ -125,7 +68,6 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
     else if (faceNormal?.z === 1) face = 'front';
     else if (faceNormal?.z === -1) face = 'back';
 
-    // Naviguer en fonction de la face cliquée
     switch (face) {
       case 'front':
         navigate('/projects/sankey3d');
@@ -137,13 +79,13 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
         navigate('/projects/bargraph');
         break;
       case 'right':
-        navigate('/projects/another-route'); // Ajoutez d'autres routes si nécessaire
+        navigate('/projects/another-route');
         break;
       case 'top':
-        navigate('/projects/top-route'); // Ajoutez d'autres routes si nécessaire
+        navigate('/projects/top-route');
         break;
       case 'bottom':
-        navigate('/projects/bottom-route'); // Ajoutez d'autres routes si nécessaire
+        navigate('/projects/bottom-route');
         break;
       default:
         navigate('/');
@@ -151,18 +93,18 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
   };
 
   return (
-    <group>
-      {/* Cube */}
+    <>
+     
       <RigidBody
         ref={(ref) => {
           if (ref && !cubeRef.current) {
             cubeRef.current = ref as unknown as RigidBodyApi;
           }
         }}
-        type="kinematicPosition" // Rotation contrôlée manuellement
+        type="kinematicPosition"
         colliders="cuboid"
         friction={0.5}
-        position={[0, 0, 0]} // Centre du cube
+        position={[0, 0, 0]}
       >
         <RoundedBox
           args={[10, 10, 10]}
@@ -176,13 +118,12 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
         </RoundedBox>
       </RigidBody>
 
-      {/* Lettres */}
-      <group>
-        {letters.map((letter, index) =>
-          createLetter(letter, [(index - 4) * 0.90, 20, 0], [0, 0, 0], `${letter}-${index}`)
-        )}
-      </group>
-    </group>
+      {/* Mur de briques */}
+      <WallOfBricks onBrickDestroyed={handleBrickDestroyed} />
+
+      {/* Lettres flottantes */}
+      <FloatingLetters letters={letters} onBrickDestroyed={handleBrickDestroyed} />
+    </>
   );
 };
 
