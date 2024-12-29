@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
+import { Billboard, OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { FiList, FiSettings, FiX } from 'react-icons/fi'; // Import des icônes
 import { motion, AnimatePresence } from 'framer-motion'; // Import de framer-motion
@@ -157,8 +157,16 @@ export const generateData = (
 
 // SankeyNode component with shadows and highlighting
 const SankeyNode: React.FC<SankeyNodeProps> = React.memo(
-  ({ position, size, color, label, onHover, onUnhover, onClick, visible, isHighlighted }) => (
-    <>
+  ({ position, size, color, label, onHover, onUnhover, onClick, visible, isHighlighted }) => {
+    const textRef = useRef<THREE.Mesh>(null);
+    useFrame(({ camera }) => {
+      // Orienter le texte vers la caméra
+      if (textRef.current) {
+        textRef.current.lookAt(camera.position); // Le texte "regarde" toujours la caméra
+      }
+    });
+    const labelOffsetY = -size - 2;
+   return ( <>
       <mesh
         position={position}
         onPointerOver={() => { if (visible) onHover(); }} // Conditionner le survol
@@ -176,8 +184,10 @@ const SankeyNode: React.FC<SankeyNodeProps> = React.memo(
         />
       </mesh>
       {visible && (
+        
         <Text
-          position={[position[0], position[1] - size - 2, position[2]]} // Slight adjustment
+        ref={textRef} 
+          position={[position[0], position[1] + labelOffsetY, position[2]]} // Slight adjustment
           fontSize={7}
           color="white"
           anchorX="center"
@@ -187,7 +197,7 @@ const SankeyNode: React.FC<SankeyNodeProps> = React.memo(
         </Text>
       )}
     </>
-  )
+  )}
 );
 
 // SankeyLink component with shadows
@@ -322,13 +332,13 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
 
     // Calculate center of node positions
     const allPositions = Object.values(positions);
-    const centerX = allPositions.reduce((sum, pos) => sum + pos[0], 0) / allPositions.length;
+    // const centerX = allPositions.reduce((sum, pos) => sum + pos[0], 0) / allPositions.length;
     const centerY = allPositions.reduce((sum, pos) => sum + pos[1], 0) / allPositions.length;
     const centerZ = allPositions.reduce((sum, pos) => sum + pos[2], 0) / allPositions.length;
 
     // Adjust node positions to center the graph
     Object.keys(positions).forEach((item) => {
-      positions[item][0] -= centerX;
+     // positions[item][0] -= centerX;
       positions[item][1] -= centerY;
       positions[item][2] -= centerZ;
     });
@@ -460,33 +470,38 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
   return (
     <group ref={groupRef}>
       {/* Column Titles */}
-      <Text
-        position={sourceTitlePosition}
-        fontSize={60}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Source
-      </Text>
-      <Text
-        position={middleTitlePosition}
-        fontSize={60}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Source/Target
-      </Text>
-      <Text
-        position={targetTitlePosition}
-        fontSize={60}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
-        Target
-      </Text>
+      <Billboard position={sourceTitlePosition}>
+  <Text
+    fontSize={40}
+    color="white"
+    anchorX="center"
+    anchorY="middle"
+  >
+    Source
+  </Text>
+</Billboard>
+
+<Billboard position={middleTitlePosition}>
+  <Text
+    fontSize={40}
+    color="white"
+    anchorX="center"
+    anchorY="middle"
+  >
+    Source/Target
+  </Text>
+</Billboard>
+
+<Billboard position={targetTitlePosition}>
+  <Text
+    fontSize={40}
+    color="white"
+    anchorX="center"
+    anchorY="middle"
+  >
+    Target
+  </Text>
+</Billboard>
 
       {/* Render Nodes */}
       {nodesWithSizes.map((node, index) => {
@@ -909,7 +924,8 @@ const ProjectsSection: React.FC = () => {
       <FiSettings size={24} />
     </motion.button></div>
   ) : (
-    <div className="absolute bottom-0 left-0"> <motion.div
+    <div className="absolute bottom-0 left-0"> 
+    <motion.div
       key="data-generation"
       initial={{ opacity: 0, x: -100, y: 100 }}
       animate={{ opacity: 1, x: 1, y: 1 }} // Animation vers la gauche
@@ -984,14 +1000,15 @@ const ProjectsSection: React.FC = () => {
       >
         <FiX size={16} />
       </button>
-    </motion.div></div>
+    </motion.div>
+    </div>
   )}
 </AnimatePresence>
       {/* Rotation Control Button */}
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
         <button
           onClick={toggleRotation}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none shadow"
+          className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600 focus:outline-none shadow"
         >
           {isRotating ? 'Stop Rotation' : 'Start Rotation'}
         </button>
