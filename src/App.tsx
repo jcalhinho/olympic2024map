@@ -3,7 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import AboutSection from './components/aboutsection';
 import ProjectsSection from './components/projectsection';
 import Home from './components/Home';
-import PieChart from './components/PieChart';
+
 import PieChartSection from './components/PieChartSection';
 
 // Composant App avec Navigation
