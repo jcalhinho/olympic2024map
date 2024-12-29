@@ -59,7 +59,7 @@ const Home: React.FC = () => {
       style={{
         height: '100vh',
         width: '100vw',
-        background: 'linear-gradient(to bottom, #87CEEB, #4682B4)', // Fond bleu ciel
+        background: 'linear-gradient(to bottom, #000428, #004e92)' // Fond bleu ciel
       }}
     >
       {/* Lumières */}

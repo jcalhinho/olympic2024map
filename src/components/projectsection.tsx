@@ -102,7 +102,7 @@ interface Data {
 }
 
 // Data generation function
-const generateData = (
+export const generateData = (
   numberOfSourceNodes: number,
   numberOfMiddleNodes: number,
   numberOfTargetNodes: number,

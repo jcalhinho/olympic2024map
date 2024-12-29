@@ -19,7 +19,7 @@ declare module '@react-three/fiber' {
 }
 
 // Définir le type RigidBodyApi localement
-type RigidBodyApi = {
+export type RigidBodyApi = {
   translation: () => { x: number; y: number; z: number };
   setTranslation: (translation: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
   setLinvel: (linvel: { x: number; y: number; z: number }, wakeUp?: boolean) => void;
