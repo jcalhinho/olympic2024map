@@ -5,6 +5,7 @@ import ProjectsSection from './components/projectsection';
 import Home from './components/Home';
 
 import PieChartSection from './components/PieChartSection';
+import { GameProvider } from './context/gameContext';
 
 // Composant App avec Navigation
 function App() {
@@ -45,7 +46,7 @@ function App() {
       {/* Routes de l'application */}
       <main className="h-screen overflow-hidden ">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<GameProvider><Home /></GameProvider>} />
           <Route path="/projects/sankey3d" element={<ProjectsSection />} />
           <Route path="/projects/piechart" element={<PieChartSection  />} /> {/* Mise à jour de la route */}
           <Route path="/projects/bargraph" element={<div>Bar Graph Page</div>} />
