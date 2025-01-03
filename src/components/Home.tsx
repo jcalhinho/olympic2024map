@@ -9,8 +9,8 @@ import { Euler } from 'three';
 import { TextureLoader } from 'three';
 import { useLoader } from '@react-three/fiber';
 import { motion } from 'framer-motion';
-import { FiArrowUp, FiArrowDown,  } from 'react-icons/fi';
-
+import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import AnimatedBall from './AnimatedBall';
 
 const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> = ({ url, position }) => {
   const texture = useLoader(TextureLoader, url);
@@ -22,27 +22,49 @@ const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> 
     </mesh>
   );
 };
+
 const Home: React.FC = () => {
   // État de rotation cible
   const [targetRotation, setTargetRotation] = useState<Euler>(new Euler(0, 0, 0, 'XYZ'));
 
   // État pour suivre les lettres "DATA" tombées
-  const [fallenDataLetters, setFallenDataLetters] = useState<Set<string>>(new Set());
-// État pour la position de la souris
-const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-const [tooltipMessage, setTooltipMessage] = useState<string>('');
-// État pour le compteur de clics
-const [clickCount, setClickCount] = useState(0);
-  const handleBrickDestroyed = (id: string) => {
-   <></>
+  const [fallenDataLetters, setFallenDataLetters] = useState<string[]>([]);
+
+  // État pour indiquer si les briques doivent tomber
+  const [bricksShouldFall, setBricksShouldFall] = useState<boolean>(false);
+
+  // État pour la position de la souris
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [tooltipMessage, setTooltipMessage] = useState<string>('');
+
+  // État pour le compteur de clics
+  const [clickCount, setClickCount] = useState(0);
+
+  // État pour la taille sur l'axe z de GroundDice
+  const [groundDiceSizeZ, setGroundDiceSizeZ] = useState(10); // Valeur initiale de z
+
+  // Fonction pour étendre GroundDice sur l'axe z
+  const extendGroundDiceZ = () => {
+    setGroundDiceSizeZ(prev => prev + 40);
   };
 
-  const handleLetterFallen = (letter: string) => {
-    setFallenDataLetters((prev) => new Set(prev).add(letter));
+  const handleBrickDestroyed = (id: string) => {
+    // Implémentation selon vos besoins
+  };
+
+  // Gestion des lettres "DATA" tombées
+  const handleDataLetterFallen = (letter: string) => {
+    setFallenDataLetters((prev) => [...prev, letter]);
     setTooltipMessage(`Lettre "${letter}" tombée!`);
   };
 
-  const hasWon = fallenDataLetters.size === 4; // "D", "A", "T", "A"
+  // Gestion des lettres "VISUALISATION" tombées
+  const handleVisualLetterFallen = (letter: string) => {
+    // Vous pouvez ajouter des actions spécifiques pour les lettres "VISUALISATION" si nécessaire
+    setTooltipMessage(`Lettre "${letter}" tombée!`);
+  };
+
+  const hasWon = fallenDataLetters.length === 4; // "D", "A", "T", "A"
 
   const rotateUp = () => {
     setTargetRotation((prev) => new Euler(prev.x - Math.PI / 2, prev.y, prev.z, 'XYZ'));
@@ -72,6 +94,7 @@ const [clickCount, setClickCount] = useState(0);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       const x = event.clientX;
@@ -105,11 +128,12 @@ const [clickCount, setClickCount] = useState(0);
       window.removeEventListener('click', handleMouseClick);
     };
   }, []);
+
   const [topMessage, setTopMessage] = useState<string>('');
   useEffect(() => {
     // Afficher un message spécifique selon le nombre de clics
     if (clickCount === 124) {
-      setTopMessage('Ca fait deja 124 fois que vous cliquez...ca va?');
+      setTopMessage('Ça fait déjà 124 fois que vous cliquez... ça va?');
     } else if (clickCount === 10) {
       setTopMessage('10 clics ! Impressionnant !');
     } else if (clickCount > 10) {
@@ -118,6 +142,19 @@ const [clickCount, setClickCount] = useState(0);
       setTopMessage('');
     }
   }, [clickCount]);
+  const handleBallReachTarget = () => {
+    rotateUp();
+    setTooltipMessage('La balle a déclenché la rotation vers le haut!');
+  };
+  // Effet pour augmenter sizeZ et déclencher la chute des briques lorsque toutes les lettres "DATA" sont tombées
+  useEffect(() => {
+    if (fallenDataLetters.length === 1) {
+      extendGroundDiceZ();
+      setBricksShouldFall(true); // Déclenche la chute des briques
+      setTooltipMessage('Toutes les lettres "DATA" sont tombées !');
+    }
+  }, [fallenDataLetters]);
+
   return (
     <div className="relative overflow-hidden">
       {/* Message de victoire */}
@@ -136,6 +173,7 @@ const [clickCount, setClickCount] = useState(0);
           GG Bro!
         </div>
        )} 
+
       {/* Message en haut de l'écran */}
       {topMessage && (
         <div
@@ -173,6 +211,7 @@ const [clickCount, setClickCount] = useState(0);
           {tooltipMessage}
         </div>
       )}
+
       {/* Canvas 3D */}
       <Canvas
         shadows
@@ -183,7 +222,7 @@ const [clickCount, setClickCount] = useState(0);
           background: 'linear-gradient(to bottom, #000428, #004e92)',
         }}
       >
-        <ImagePlane url="/public/corgi.jpg"position={[0, 15.5, -20]} />
+        {/* <ImagePlane url="/public/corgi.jpg" position={[0, 15.5, -20]} /> */}
         {/* Lumières */}
         <ambientLight intensity={0.5} />
         <directionalLight
@@ -205,17 +244,20 @@ const [clickCount, setClickCount] = useState(0);
           <GroundDice
             targetRotation={targetRotation}
             onBrickDestroyed={handleBrickDestroyed}
-            onLetterFallen={handleLetterFallen}
+            onLetterFallen={handleVisualLetterFallen}
+            sizeZ={groundDiceSizeZ} // Passer la taille z ici
           />
 
           {/* Mur de briques et lettres "DATA" */}
           <WallOfBricks
             onBrickDestroyed={handleBrickDestroyed}
-            onLetterFallen={handleLetterFallen}
-            position={[0, 2, -20]}
+            onLetterFallen={handleDataLetterFallen}
+            position={[0, -2, -10]}
             rotation={[0, 0, 0]}
+            bricksShouldFall={bricksShouldFall} // Passer la prop ici
           />
-      
+       {/* Balle Animée */}
+       {/* <AnimatedBall onReachTarget={handleBallReachTarget} targetX={20}/> */}
         </Physics>
 
         {/* Contrôles de la caméra */}
@@ -226,9 +268,9 @@ const [clickCount, setClickCount] = useState(0);
           maxPolarAngle={Math.PI} // Permet l'inclinaison complète vers le haut
           target={[0, 10, 0]} // Centre les contrôles sur le mur de briques
         />
+      </Canvas>
 
-
-      </Canvas><div className="absolute bottom-5 right-5 flex flex-col space-y-2">
+      <div className="absolute bottom-5 right-5 flex flex-col space-y-2">
         {/* Bouton Haut */}
         <motion.button
           whileHover={{ scale: 1.2 }}
@@ -241,9 +283,6 @@ const [clickCount, setClickCount] = useState(0);
         </motion.button>
 
         <div className="flex space-x-2">
-          {/* Bouton Gauche */}
-          
-
           {/* Bouton Bas */}
           <motion.button
             whileHover={{ scale: 1.2 }}
@@ -254,10 +293,8 @@ const [clickCount, setClickCount] = useState(0);
           >
             <FiArrowDown size={24} />
           </motion.button>
-
-          {/* Bouton Droite */}
-          
-        </div></div>
+        </div>
+      </div>
     </div>
   );
 };

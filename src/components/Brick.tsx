@@ -1,15 +1,16 @@
 // src/components/Brick.tsx
-import React, { useState } from 'react';
-import { RigidBody, CollisionEnterEvent } from '@react-three/rapier';
+import React, { useEffect, useState } from 'react';
+import { RigidBody, CollisionEnterEvent } from '@react-three/rapier'; // Import correct sans RigidBodyApi
 import { RoundedBox } from '@react-three/drei';
 
 interface BrickProps {
   position: [number, number, number];
   onDestroyed: (brickId: string) => void;
   brickId: string;
+  shouldFall: boolean; // Indique si la brique doit tomber
 }
 
-const Brick: React.FC<BrickProps> = ({ position, onDestroyed, brickId }) => {
+const Brick: React.FC<BrickProps> = ({ position, onDestroyed, brickId, shouldFall }) => {
   const [isDestroyed, setIsDestroyed] = useState(false);
 
   const handleCollision = (event: CollisionEnterEvent) => {
@@ -32,19 +33,17 @@ const Brick: React.FC<BrickProps> = ({ position, onDestroyed, brickId }) => {
 
   return (
     <RigidBody
-      type="fixed"
-      colliders="hull"
+      key={`${brickId}-${shouldFall ? 'dynamic' : 'fixed'}`} // Clé unique pour forcer le remount
+      type={shouldFall ? 'dynamic' : 'fixed'} // Définir le type en fonction de shouldFall
+      colliders="cuboid"
       restitution={0.1}
       friction={0.5}
+      mass={6}
       position={position}
       onCollisionEnter={handleCollision}
-      userData={{ type: 'brick', id: brickId }} // Ajout des données utilisateur
+      userData={{ type: 'brick', id: brickId }}
     >
-      {/* <mesh castShadow receiveShadow scale={isDestroyed ? [0, 0, 0] : [3, 1.5, 1.5]}>
-        <boxGeometry args={[3, 1.5, 1.5]} />
-        <meshStandardMaterial color={isDestroyed ? 'white' : 'grey'} />
-      </mesh> */}
-      <RoundedBox args={[3, 1.5, 1.5]} radius={0.2} smoothness={2} scale={isDestroyed ? [0, 0, 0] : [1, 2, 1]}>
+      <RoundedBox args={[3, 2.5, 8.5]} radius={0.2} smoothness={2} scale={isDestroyed ? [0, 0, 0] : [1, 1, 1]}>
         <meshStandardMaterial color={isDestroyed ? 'white' : 'grey'} />
       </RoundedBox>
     </RigidBody>
