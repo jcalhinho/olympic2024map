@@ -10,7 +10,7 @@ import { TextureLoader } from 'three';
 import { useLoader } from '@react-three/fiber';
 import { motion } from 'framer-motion';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
-import AnimatedBall from './AnimatedBall';
+
 
 const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> = ({ url, position }) => {
   const texture = useLoader(TextureLoader, url);
@@ -142,10 +142,10 @@ const Home: React.FC = () => {
       setTopMessage('');
     }
   }, [clickCount]);
-  const handleBallReachTarget = () => {
-    rotateUp();
-    setTooltipMessage('La balle a déclenché la rotation vers le haut!');
-  };
+  // const handleBallReachTarget = () => {
+  //   rotateUp();
+  //   setTooltipMessage('La balle a déclenché la rotation vers le haut!');
+  // };
   // Effet pour augmenter sizeZ et déclencher la chute des briques lorsque toutes les lettres "DATA" sont tombées
   useEffect(() => {
     if (fallenDataLetters.length === 1) {

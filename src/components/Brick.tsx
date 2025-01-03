@@ -1,6 +1,6 @@
 // src/components/Brick.tsx
-import React, { useEffect, useState } from 'react';
-import { RigidBody, CollisionEnterEvent } from '@react-three/rapier'; // Import correct sans RigidBodyApi
+import React, {  useState } from 'react';
+import { RigidBody } from '@react-three/rapier'; // Import correct sans RigidBodyApi
 import { RoundedBox } from '@react-three/drei';
 
 interface BrickProps {
@@ -13,7 +13,7 @@ interface BrickProps {
 const Brick: React.FC<BrickProps> = ({ position, onDestroyed, brickId, shouldFall }) => {
   const [isDestroyed, setIsDestroyed] = useState(false);
 
-  const handleCollision = (event: CollisionEnterEvent) => {
+  const handleCollision = (event) => {
     const otherBody = event.other.rigidBody;
     const userData = otherBody?.userData as { type: string } | undefined;
 
@@ -27,7 +27,7 @@ const Brick: React.FC<BrickProps> = ({ position, onDestroyed, brickId, shouldFal
       setIsDestroyed(true);
       setTimeout(() => {
         onDestroyed(brickId);
-      }, 300);
+      }, 50);
     }
   };
 

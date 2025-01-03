@@ -1,12 +1,13 @@
 
 
 import React, { useRef, useMemo } from 'react';
-import { RigidBody, CollisionEnterEvent } from '@react-three/rapier';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+import { RigidBody } from '@react-three/rapier';
+
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import myfont from '../../public/fonts/helvetiker_regular.typeface.json';
+import { Vector } from '@dimforge/rapier3d';
 
 interface FloatingLettersProps {
   letters: string[];
@@ -19,9 +20,17 @@ interface UserData {
   id?: string;
   letter?: string;
 }
-
+export interface CustomRigidBodyApi {
+  setNextKinematicRotation(quaternion: THREE.Quaternion): unknown;
+  setTranslation: (tra: Vector, wakeUp: boolean) => void;
+  setLinvel: (velocity: Vector, wakeUp: boolean) => void;
+  setAngvel: (angularVelocity: Vector, wakeUp: boolean) => void;
+  setRotation: (quaternion: THREE.Quaternion, wakeUp: boolean) => void;
+  translation: () => Vector;
+  // Ajoutez d'autres méthodes si nécessaire
+}
 const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestroyed, onLetterFallen }) => {
-  const lettersRefs = useRef<(RigidBody | null)[]>([]);
+  const lettersRefs: React.MutableRefObject<(CustomRigidBodyApi | null)[]> = useRef<(CustomRigidBodyApi | null)[]>([]);
   const font = useMemo(() => new FontLoader().parse(myfont), []);
 
   // Positions et rotations initiales des lettres
@@ -62,13 +71,15 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
   });
 
   // Gestion des collisions avec les briques
-  const handleCollision = (letterId: string) => (event: CollisionEnterEvent) => {
+  const handleCollision = (event: any) => {
     const otherBody = event.other.rigidBody;
-    const userData = otherBody?.userData as UserData | undefined;
-
-    if (userData?.type === 'brick') {
-      // Détruire la brique
-      onBrickDestroyed(userData.id || '');
+    if (otherBody) {
+      const userData = otherBody.userData as UserData | undefined;
+  
+      if (userData?.type === 'brick') {
+        // Détruire la brique
+        onBrickDestroyed(userData.id || '');
+      }
     }
   };
 
@@ -91,12 +102,12 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
         position={position}
         rotation={rotation}
         userData={{ type: 'visualisationLetter', id: key }}
-        ref={(ref) => {
+        ref={(ref ) => {
           if (ref) {
-            lettersRefs.current[index] = ref;
+            lettersRefs.current[index]  = ref;
           }
         }}
-        onCollisionEnter={handleCollision(key)}
+        onCollisionEnter={handleCollision}
       >
         <mesh castShadow receiveShadow>
           <textGeometry args={[text, { font, size: 2.5, depth: 1.3 }]} />
@@ -122,3 +133,4 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
 };
 
 export default FloatingLetters;
+
