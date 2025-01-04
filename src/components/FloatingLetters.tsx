@@ -15,7 +15,7 @@ interface FloatingLettersProps {
   onLetterFallen: (letter: string) => void;
 }
 
-interface UserData {
+export interface UserData {
   type: string;
   id?: string;
   letter?: string;

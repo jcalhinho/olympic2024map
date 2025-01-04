@@ -2,7 +2,7 @@
 import React, {  useState } from 'react';
 import { RigidBody } from '@react-three/rapier'; // Import correct sans RigidBodyApi
 import { RoundedBox } from '@react-three/drei';
-
+import { CollisionEnterPayload } from '@react-three/rapier';
 interface BrickProps {
   position: [number, number, number];
   onDestroyed: (brickId: string) => void;
@@ -13,15 +13,15 @@ interface BrickProps {
 const Brick: React.FC<BrickProps> = ({ position, onDestroyed, brickId, shouldFall }) => {
   const [isDestroyed, setIsDestroyed] = useState(false);
 
-  const handleCollision = (event) => {
+  const handleCollision = (event: CollisionEnterPayload) => {
     const otherBody = event.other.rigidBody;
     const userData = otherBody?.userData as { type: string } | undefined;
-
+  
     // Ignorer les collisions avec les lettres "DATA"
     if (userData?.type === 'dataLetter') {
       return;
     }
-
+  
     // Détruire la brique si elle est frappée par une lettre "VISUALISATION"
     if (!isDestroyed && userData?.type === 'visualisationLetter') {
       setIsDestroyed(true);

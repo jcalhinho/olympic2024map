@@ -30,12 +30,12 @@ declare module '@react-three/fiber' {
 
 
 const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroyed, onLetterFallen, sizeZ }) => {
-  const groundRef = useRef<CustomRigidBodyApi>(null);
-  const groundRef2 = useRef<CustomRigidBodyApi>(null);
+  const rigidBodyRef = useRef<RigidBody>(null); // Référence pour RigidBody
+  const customApiRef = useRef<CustomRigidBodyApi>(null); // Référence pour CustomRigidBodyApi si nécessaire
   const currentRotation = useRef(new THREE.Euler(0, 0, 0, 'XYZ'));
 
   useFrame(() => {
-    if (groundRef.current) {
+    if (rigidBodyRef.current) {
       // Interpolation de la rotation actuelle vers la rotation cible
       currentRotation.current.x += (targetRotation.x - currentRotation.current.x) * 0.1;
       currentRotation.current.y += (targetRotation.y - currentRotation.current.y) * 0.1;
@@ -43,7 +43,7 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroye
 
       // Conversion en quaternion pour Rapier
       const quaternion = new THREE.Quaternion().setFromEuler(currentRotation.current);
-      groundRef.current.setNextKinematicRotation(quaternion);
+      rigidBodyRef.current.setNextKinematicRotation(quaternion);
     }
   });
 
@@ -51,7 +51,7 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroye
     <>
       {/* Sol rotatif */}
       <RigidBody 
-        ref={groundRef }
+        ref={rigidBodyRef }
         type="kinematicPosition"
         colliders="cuboid"
         restitution={0.1}
@@ -64,7 +64,7 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroye
         </RoundedBox>
       </RigidBody>
       <RigidBody 
-        ref={groundRef2}
+        ref={customApiRef}
         type="fixed"
         colliders="cuboid"
         restitution={0.1}
