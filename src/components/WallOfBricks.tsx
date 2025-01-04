@@ -154,14 +154,14 @@
 
 // src/components/WallOfBricks.tsx
 import React, { useState, useRef, useMemo } from 'react';
-import { RigidBody, RigidBodyApi } from '@react-three/rapier';
+import { RigidBody } from '@react-three/rapier';
 import { Euler, Vector3, useFrame } from '@react-three/fiber';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import myfont from '../../public/fonts/helvetiker_regular.typeface.json';
 import Brick from './Brick';
 import * as THREE from 'three';
 
-export interface CustomRigidBodyApi extends RigidBodyApi {
+export interface CustomRigidBodyApi  {
   translation: () => { x: number; y: number; z: number };
   setLinvel(arg0: { x: number; y: number; z: number }, wakeUp: boolean): void;
   setAngvel(arg0: { x: number; y: number; z: number }, wakeUp: boolean): void;
