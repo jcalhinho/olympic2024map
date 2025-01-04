@@ -70,9 +70,10 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroye
         restitution={0.1}
         friction={0.5}
         position={[0, -5, -38]}
+        rotation={[0,0,0]}
         userData={{ type: 'ground' }}
       >
-        <RoundedBox args={[52, 8, 10]} radius={0.5} smoothness={4} castShadow receiveShadow>
+        <RoundedBox args={[50, 8, 10]} radius={0.5} smoothness={4} castShadow receiveShadow>
           <meshStandardMaterial color="#057be3" />
         </RoundedBox>
       </RigidBody>
