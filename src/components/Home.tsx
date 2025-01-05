@@ -1,17 +1,44 @@
 // src/components/Home.tsx
-import React, { useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Environment, OrbitControls } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import GroundDice from './GroundDice';
 import WallOfBricks from './WallOfBricks';
-import { Euler } from 'three';
+import {  Euler } from 'three';
 import { TextureLoader } from 'three';
 import { useLoader } from '@react-three/fiber';
 import { motion } from 'framer-motion';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import InvisibleScreen from './InvisibleScreen';
+import * as THREE from 'three';
+import ShatteredGlass from './ShatteredGlass';
 
+// Composant pour suivre la caméra
 
+interface FollowCameraScreenProps {
+  onShatter: () => void;
+}
+
+const FollowCameraScreen = forwardRef<THREE.Mesh, FollowCameraScreenProps>(
+  ({ onShatter }, ref) => {
+    const screenRef = useRef<THREE.Mesh>(null);
+    const { camera } = useThree();
+
+    useFrame(() => {
+      if (screenRef.current) {
+        const distance = 20; // Distance devant la caméra
+        const direction = new THREE.Vector3(0, 0, -1);
+        direction.applyQuaternion(camera.quaternion);
+        const newPosition = new THREE.Vector3().copy(camera.position).add(direction.multiplyScalar(distance));
+        screenRef.current.position.copy(newPosition);
+        screenRef.current.quaternion.copy(camera.quaternion);
+      }
+    });
+
+    return <InvisibleScreen ref={ref || screenRef} onShatter={onShatter} />;
+  }
+);
 const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> = ({ url, position }) => {
   const texture = useLoader(TextureLoader, url);
 
@@ -221,13 +248,13 @@ const Home: React.FC = () => {
           width: '100vw',
           background: 'linear-gradient(to bottom, #000428, #004e92)',
         }}
-      >
+      > <Environment preset="night"  />
         {/* <ImagePlane url="/public/corgi.jpg" position={[0, 15.5, -20]} /> */}
         {/* Lumières */}
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={0.1} />
         <directionalLight
           position={[10, 20, 10]}
-          intensity={1.5}
+          intensity={1}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -255,6 +282,11 @@ const Home: React.FC = () => {
             position={[0, -2, -10]}
             rotation={[0, 0, 0]}
             bricksShouldFall={bricksShouldFall} // Passer la prop ici
+          />
+          <ShatteredGlass
+            position={[0, 0, 40]}   // Position dans la scène
+            size={[90, 90, 0.8]}    // Largeur/hauteur/épaisseur
+           // glassTextureUrl={'src/textures/Drawing.png'}
           />
        {/* Balle Animée */}
        {/* <AnimatedBall onReachTarget={handleBallReachTarget} targetX={20}/> */}

@@ -201,7 +201,19 @@ const WallOfBricks: React.FC<WallOfBricksProps> = ({
               <textGeometry
                 args={[dl.letter, { font, size: 9, depth: 8.2 }]}
               />
-              <meshStandardMaterial color="white" />
+              <meshPhysicalMaterial
+              color="lightgrey" // Bleu avec opacité
+              transparent
+              opacity={1}
+              transmission={0.5} // Pour une transparence complète
+              roughness={0} // Surface très lisse
+              metalness={0.1} // Augmenter pour plus de réflexions
+              ior={1.5} // Indice de réfraction typique du verre
+              reflectivity={0.4} // Augmenter pour des réflexions plus prononcées
+              thickness={1} // Épaisseur du matériau
+              envMapIntensity={1} // Intensité des réflexions de l'environnement
+            
+            />
             </mesh>
           </RigidBody>
         );

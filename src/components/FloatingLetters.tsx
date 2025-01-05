@@ -77,8 +77,12 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
       const userData = otherBody.userData as UserData | undefined;
   
       if (userData?.type === 'brick') {
-        // Détruire la brique
         onBrickDestroyed(userData.id || '');
+      }
+      // Cas 2: Touche l'écran invisible
+      else if (userData?.type === 'invisibleScreen') {
+        console.log('Collision letter -> invisibleScreen !');
+        // Tu peux déclencher un son ou autre action
       }
     }
   };
@@ -111,7 +115,19 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
       >
         <mesh castShadow receiveShadow>
           <textGeometry args={[text, { font, size: 2.5, depth: 1.3 }]} />
-          <meshStandardMaterial color="white" />
+          <meshPhysicalMaterial
+              color="lightgrey" // Bleu avec opacité
+              transparent
+              opacity={1}
+              transmission={0.5} // Pour une transparence complète
+              roughness={0} // Surface très lisse
+              metalness={0.1} // Augmenter pour plus de réflexions
+              ior={1.5} // Indice de réfraction typique du verre
+              reflectivity={0.4} // Augmenter pour des réflexions plus prononcées
+              thickness={1} // Épaisseur du matériau
+              envMapIntensity={1} // Intensité des réflexions de l'environnement
+            
+            />
         </mesh>
       </RigidBody>
     );
