@@ -1,71 +1,32 @@
 // src/components/Home.tsx
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, {  useEffect,  useState } from 'react';
+import { Canvas,  } from '@react-three/fiber';
 import { Environment, OrbitControls } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import GroundDice from './GroundDice';
 import WallOfBricks from './WallOfBricks';
 import {  Euler } from 'three';
-import { TextureLoader } from 'three';
-import { useLoader } from '@react-three/fiber';
+
 import { motion } from 'framer-motion';
-import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
-import InvisibleScreen from './InvisibleScreen';
-import * as THREE from 'three';
+import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
+
 import ShatteredGlass from './ShatteredGlass';
 
-// Composant pour suivre la caméra
 
-interface FollowCameraScreenProps {
-  onShatter: () => void;
-}
-
-const FollowCameraScreen = forwardRef<THREE.Mesh, FollowCameraScreenProps>(
-  ({ onShatter }, ref) => {
-    const screenRef = useRef<THREE.Mesh>(null);
-    const { camera } = useThree();
-
-    useFrame(() => {
-      if (screenRef.current) {
-        const distance = 20; // Distance devant la caméra
-        const direction = new THREE.Vector3(0, 0, -1);
-        direction.applyQuaternion(camera.quaternion);
-        const newPosition = new THREE.Vector3().copy(camera.position).add(direction.multiplyScalar(distance));
-        screenRef.current.position.copy(newPosition);
-        screenRef.current.quaternion.copy(camera.quaternion);
-      }
-    });
-
-    return <InvisibleScreen ref={ref || screenRef} onShatter={onShatter} />;
-  }
-);
-const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> = ({ url, position }) => {
-  const texture = useLoader(TextureLoader, url);
-
-  return (
-    <mesh position={position}>
-      <planeGeometry args={[38, 21.5]} />
-      <meshStandardMaterial map={texture} />
-    </mesh>
-  );
-};
 
 const Home: React.FC = () => {
   // État de rotation cible
   const [targetRotation, setTargetRotation] = useState<Euler>(new Euler(0, 0, 0, 'XYZ'));
-
+  const [isBroken, setIsBroken] = useState(false);
   // État pour suivre les lettres "DATA" tombées
   const [fallenDataLetters, setFallenDataLetters] = useState<string[]>([]);
 
   // État pour indiquer si les briques doivent tomber
   const [bricksShouldFall, setBricksShouldFall] = useState<boolean>(false);
+  const [topMessage, setTopMessage] = useState<string>('Break stuff, it’s fun! ');
 
-  // État pour la position de la souris
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [tooltipMessage, setTooltipMessage] = useState<string>('');
 
-  // État pour le compteur de clics
-  const [clickCount, setClickCount] = useState(0);
+
 
   // État pour la taille sur l'axe z de GroundDice
   const [groundDiceSizeZ, setGroundDiceSizeZ] = useState(10); // Valeur initiale de z
@@ -75,32 +36,26 @@ const Home: React.FC = () => {
     setGroundDiceSizeZ(prev => prev + 40);
   };
 
-  const handleBrickDestroyed = (id: string) => {
-    // Implémentation selon vos besoins
-  };
+ 
 
   // Gestion des lettres "DATA" tombées
   const handleDataLetterFallen = (letter: string) => {
     setFallenDataLetters((prev) => [...prev, letter]);
-    setTooltipMessage(`Lettre "${letter}" tombée!`);
+   
   };
 
-  // Gestion des lettres "VISUALISATION" tombées
-  const handleVisualLetterFallen = (letter: string) => {
-    // Vous pouvez ajouter des actions spécifiques pour les lettres "VISUALISATION" si nécessaire
-    setTooltipMessage(`Lettre "${letter}" tombée!`);
-  };
+ 
 
-  const hasWon = fallenDataLetters.length === 4; // "D", "A", "T", "A"
+  
 
   const rotateUp = () => {
     setTargetRotation((prev) => new Euler(prev.x - Math.PI / 2, prev.y, prev.z, 'XYZ'));
-    setTooltipMessage('Rotation vers le haut !');
+    
   };
 
   const rotateDown = () => {
     setTargetRotation((prev) => new Euler(prev.x + Math.PI / 2, prev.y, prev.z, 'XYZ'));
-    setTooltipMessage('Rotation vers le bas !');
+   
   };
 
   useEffect(() => {
@@ -121,96 +76,51 @@ const Home: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
+ 
+ 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      const x = event.clientX;
-      const y = event.clientY;
-      
-      setMousePosition({ x, y });
-    
-      // Définir les messages selon les zones de l'écran
-      if (x <= 200) {
-        setTooltipMessage('Tu es dans la zone de gauche !');
-      } else if (x > 200 && x <= 500) {
-        setTooltipMessage('Tu es dans la zone du centre !');
-      } else if (x > 500) {
-        setTooltipMessage('Tu es dans la zone de droite !');
-      } else {
-        setTooltipMessage('');
-      }
-    };
-
-    const handleMouseClick = () => {
-      setClickCount((prev) => prev + 1);
-      setTooltipMessage('Clic détecté !');
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('click', handleMouseClick);
-
-    // Nettoyage des écouteurs
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('click', handleMouseClick);
-    };
-  }, []);
-
-  const [topMessage, setTopMessage] = useState<string>('');
-  useEffect(() => {
-    // Afficher un message spécifique selon le nombre de clics
-    if (clickCount === 124) {
-      setTopMessage('Ça fait déjà 124 fois que vous cliquez... ça va?');
-    } else if (clickCount === 10) {
-      setTopMessage('10 clics ! Impressionnant !');
-    } else if (clickCount > 10) {
-      setTopMessage('Vous continuez à cliquer... Bravo !');
-    } else {
-      setTopMessage('');
+    if(isBroken){
+      setTopMessage('Wo-wo-wo, you broke the glass!');
+      setTimeout(() => {
+        setTopMessage('');
+      }, 6000);
     }
-  }, [clickCount]);
-  // const handleBallReachTarget = () => {
-  //   rotateUp();
-  //   setTooltipMessage('La balle a déclenché la rotation vers le haut!');
-  // };
-  // Effet pour augmenter sizeZ et déclencher la chute des briques lorsque toutes les lettres "DATA" sont tombées
+    
+  }, [isBroken]);
+ 
+  const [sceneKey, setSceneKey] = useState(0);
+
+  const resetScene = () => {
+    setTargetRotation(new Euler(0, 0, 0, 'XYZ'));
+    setIsBroken(false);
+    setFallenDataLetters([]);
+    setBricksShouldFall(false);
+    setGroundDiceSizeZ(10);
+    setTopMessage('Break stuff, it’s fun!');
+    // Augmente la clé pour forcer le re-montage de la scène
+    setSceneKey(prev => prev + 1);
+  };
   useEffect(() => {
     if (fallenDataLetters.length === 1) {
       extendGroundDiceZ();
       setBricksShouldFall(true); // Déclenche la chute des briques
-      setTooltipMessage('Toutes les lettres "DATA" sont tombées !');
+      
     }
   }, [fallenDataLetters]);
 
   return (
     <div className="relative overflow-hidden">
-      {/* Message de victoire */}
-      {hasWon && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '10%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: 'white',
-            fontSize: '2em',
-            zIndex: 100000,
-          }}
-        >
-          GG Bro!
-        </div>
-       )} 
-
-      {/* Message en haut de l'écran */}
+     
       {topMessage && (
         <div
           style={{
             position: 'absolute',
-            top: 0,
+            top: 50,
             left: 0,
             width: '100%',
             textAlign: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            fontSize:"25px",
+            backgroundColor: 'transparent',
             color: 'white',
             padding: '10px',
             zIndex: 1000,
@@ -220,27 +130,11 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* Tooltip qui suit la souris */}
-      {tooltipMessage && (
-        <div
-          style={{
-            position: 'absolute',
-            top: mousePosition.y + 10,
-            left: mousePosition.x + 10,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            color: 'white',
-            padding: '5px 10px',
-            borderRadius: '5px',
-            pointerEvents: 'none',
-            zIndex: 1000,
-          }}
-        >
-          {tooltipMessage}
-        </div>
-      )}
+     
 
       {/* Canvas 3D */}
       <Canvas
+      key={sceneKey}
         shadows
         camera={{ position: [0, 15, 70], fov: 50 }}
         style={{
@@ -270,26 +164,26 @@ const Home: React.FC = () => {
           {/* Sol et lettres "VISUALISATION" */}
           <GroundDice
             targetRotation={targetRotation}
-            onBrickDestroyed={handleBrickDestroyed}
-            onLetterFallen={handleVisualLetterFallen}
+            
+           
             sizeZ={groundDiceSizeZ} // Passer la taille z ici
           />
 
           {/* Mur de briques et lettres "DATA" */}
           <WallOfBricks
-            onBrickDestroyed={handleBrickDestroyed}
+            
             onLetterFallen={handleDataLetterFallen}
             position={[0, -2, -10]}
             rotation={[0, 0, 0]}
             bricksShouldFall={bricksShouldFall} // Passer la prop ici
           />
           <ShatteredGlass
-            position={[0, 0, 40]}   // Position dans la scène
-            size={[90, 90, 0.8]}    // Largeur/hauteur/épaisseur
-           // glassTextureUrl={'src/textures/Drawing.png'}
+            position={[0, 25, 70]}   // Position dans la scène
+            size={[20, 20, 0.8]}    // Largeur/hauteur/épaisseur
+            isBroken={isBroken}
+            setIsBroken={setIsBroken}
           />
-       {/* Balle Animée */}
-       {/* <AnimatedBall onReachTarget={handleBallReachTarget} targetX={20}/> */}
+      
         </Physics>
 
         {/* Contrôles de la caméra */}
@@ -326,6 +220,15 @@ const Home: React.FC = () => {
             <FiArrowDown size={24} />
           </motion.button>
         </div>
+        <motion.button
+          whileHover={{ scale: 1.2 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={resetScene}
+          className="p-2 bg-gray-800 text-white rounded-full shadow flex items-center justify-center"
+          aria-label="Réinitialiser la scène"
+        >
+          <FiRefreshCw size={24} />
+        </motion.button>
       </div>
     </div>
   );

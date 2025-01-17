@@ -1,24 +1,29 @@
-// src/components/ShatteredGlass.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { RigidBody } from '@react-three/rapier';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Delaunay } from 'd3-delaunay';
 
-/** Petit composant pour chaque fragment brisé */
+// Composant Fragment inchangé
 const Fragment: React.FC<{
   shape: THREE.Shape;
   position: [number, number, number];
+  
 }> = ({ shape, position }) => {
-  // On extrude la shape pour donner de l'épaisseur
+
+  
   const extrudeSettings: THREE.ExtrudeGeometryOptions = {
-    depth: 0.8,        // Épaisseur du fragment
-    bevelEnabled: true
+    depth: 0.8,
+    bevelEnabled: true,
+    bevelThickness: 0.1,
+    bevelSize: 0.1,
+    bevelSegments: 1,
   };
   const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-
+  
   return (
     <RigidBody
-      type="dynamic"  // Les fragments tombent sous la gravité
+      type="dynamic"
       colliders="hull"
       mass={1}
       position={position}
@@ -28,13 +33,12 @@ const Fragment: React.FC<{
       <mesh castShadow receiveShadow>
         <primitive object={geometry} attach="geometry" />
         <meshPhysicalMaterial
-          /** même material que bricks / groundDice **/
           side={THREE.DoubleSide}
-          color="rgba(5, 123, 227, 0.1)" // Bleu avec opacité
+          color="rgba(5, 123, 227, 0.1)"
           transparent
           opacity={0.6}
-          transmission={1} // Pour un rendu de type "verre"
-          roughness={0}    // Très lisse
+          transmission={1}
+          roughness={0}
           metalness={0.1}
           ior={1.5}
           reflectivity={0.4}
@@ -47,92 +51,117 @@ const Fragment: React.FC<{
 };
 
 interface ShatteredGlassProps {
-  /** Position de la plaque de verre dans la scène */
+  /** Position initiale de la plaque */
   position?: [number, number, number];
   /** Taille [x, y, z] de la plaque */
   size?: [number, number, number];
+  /** Callback appelé lors du contact avec le verre */
+  isBroken:boolean;
+  setIsBroken: (isBroken: boolean) => void;
 }
 
 const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
-  position,  // Position par défaut
-  size,   // Dimensions par défaut
+  position = [0, 0, 0],
+  size = [90, 90, 0.8],
+  isBroken,
+  setIsBroken,
 }) => {
-  const [isBroken, setIsBroken] = useState(false);
-  const [fragments, setFragments] = useState<JSX.Element[]>([]);
 
-  /** Fonction déclenchée lors de la collision avec la plaque */
+  const [fragments, setFragments] = useState<JSX.Element[]>([]);
+  const glassRef = useRef<any>(null);
+  const { camera } = useThree();
+
+  // Décalage désiré devant la caméra (tu peux ajuster cette valeur)
+  const offsetDistance = 5;
+
+  // Met à jour la position de la plaque pour qu'elle suive la caméra
+  useFrame(() => {
+    // Met à jour uniquement tant que la plaque n'est pas brisée
+    if (!isBroken && glassRef.current) {
+      const camPos = camera.position.clone();
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+      const newPos = camPos.add(forward.multiplyScalar(offsetDistance));
+      
+      if (typeof glassRef.current.setNextKinematicTranslation === 'function') {
+        glassRef.current.setNextKinematicTranslation(newPos);
+      } else if (glassRef.current.position) {
+        glassRef.current.position.copy(newPos);
+      }
+  
+      // Il est préférable de cloner le quaternion pour éviter tout problème d’aliasing
+      if (typeof glassRef.current.setNextKinematicRotation === 'function') {
+        glassRef.current.setNextKinematicRotation(camera.quaternion.clone());
+      } else if (glassRef.current.quaternion) {
+        glassRef.current.quaternion.copy(camera.quaternion);
+      }
+    }
+  });
+
   const handleCollisionEnter = () => {
-    if (isBroken) return; // Si la plaque est déjà brisée, ne rien faire pour éviter de la casser plusieurs fois
-    setIsBroken(true); // Marquer la plaque comme brisée
+    if (isBroken) return;
+    setIsBroken(true);
+    
+    // Récupère la position et l'orientation de la caméra
+    const camPos = camera.position.clone();
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    // Par exemple, positionner les fragments à 2 unités devant la caméra
+    const fragmentStartPos = camPos.add(forward.multiplyScalar(2));
   
-    // --- Génération de fragments via triangulation de Delaunay ---
-    const numPoints = 60; // Nombre de points aléatoires pour la triangulation, ajustable pour plus ou moins de fragments
-    const points: [number, number][] = []; // Tableau pour stocker les coordonnées des points
-  
-    // Générer des points aléatoires à l'intérieur de la plaque
+    // Génération des fragments (le reste du code reste identique)
+    const numPoints = 30;
+    const points: [number, number][] = [];
     for (let i = 0; i < numPoints; i++) {
       points.push([
-        Math.random() * size[0], // Coordonnée x aléatoire entre 0 et la largeur de la plaque
-        Math.random() * size[1], // Coordonnée y aléatoire entre 0 et la hauteur de la plaque
+        Math.random() * size[0],
+        Math.random() * size[1],
       ]);
     }
-  
-    // Ajouter les coins de la plaque pour s'assurer que la triangulation couvre tout le rectangle
     points.push([0, 0], [size[0], 0], [size[0], size[1]], [0, size[1]]);
-  
-    // Effectuer la triangulation de Delaunay sur les points générés
     const delaunay = Delaunay.from(points);
-    const triangles = delaunay.triangles; // Tableau des indices des points formant les triangles
+    const triangles = delaunay.triangles;
   
-    const newFragments: JSX.Element[] = []; // Tableau pour stocker les nouveaux fragments créés
-  
-    // Parcourir chaque triangle résultant de la triangulation
+    const newFragments: JSX.Element[] = [];
     for (let i = 0; i < triangles.length; i += 3) {
-      const a = triangles[i];     // Indice du premier point du triangle
-      const b = triangles[i + 1]; // Indice du deuxième point du triangle
-      const c = triangles[i + 2]; // Indice du troisième point du triangle
+      const a = triangles[i];
+      const b = triangles[i + 1];
+      const c = triangles[i + 2];
   
-      // Construction de la forme 2D du triangle
       const shape = new THREE.Shape();
-      shape.moveTo(points[a][0], points[a][1]); // Déplacer le curseur au premier point
-      shape.lineTo(points[b][0], points[b][1]); // Tracer une ligne vers le deuxième point
-      shape.lineTo(points[c][0], points[c][1]); // Tracer une ligne vers le troisième point
-      shape.closePath(); // Fermer le chemin pour former un triangle complet
+      shape.moveTo(points[a][0], points[a][1]);
+      shape.lineTo(points[b][0], points[b][1]);
+      shape.lineTo(points[c][0], points[c][1]);
+      shape.closePath();
   
-      // Calculer la position de départ pour le fragment
-      const x0 = position && size && position[0] - size[0] + points[a][0]; // Position x ajustée
-      const y0 = position && size && position[1] - size[1] + points[a][1]; // Position y ajustée
-      const z0 = position  && position[2]; // Position z (garde la même profondeur que la plaque initiale)
-  
-      // Créer un nouveau fragment avec la forme et la position calculées
       newFragments.push(
-        <Fragment key={`frag-${i}`} shape={shape} position={[x0 as number, y0 as number, z0 as number]} />
+        <Fragment
+          key={`frag-${i}`}
+          shape={shape}
+          position={[fragmentStartPos.x, fragmentStartPos.y, fragmentStartPos.z]}
+        />
       );
     }
-  
-    // Mettre à jour l'état avec les nouveaux fragments générés
     setFragments(newFragments);
   };
-
   return (
     <>
-      {/* Tant que la plaque n'est pas brisée, on affiche le bloc complet */}
+      {/* Tant que la plaque n'est pas brisée on l'affiche */}
       {!isBroken && (
         <RigidBody
-          type="fixed"       // Plaque fixée (elle ne tombe pas avant la collision)
+          ref={glassRef}  // On référence ici la plaque pour la manipuler dynamiquement
+          type="kinematicPosition"
           colliders="cuboid"
           friction={0.5}
           restitution={0.2}
-          position={position}
+          position={position}  // Valeur initiale (sera mise à jour par useFrame)
           onCollisionEnter={handleCollisionEnter}
         >
           <mesh castShadow receiveShadow>
-            <boxGeometry args={size} />
-            <meshPhysicalMaterial
+            <boxGeometry args={size} /> 
+             <meshPhysicalMaterial
               side={THREE.DoubleSide}
-              color="rgba(5, 123, 227, 0.1)"
+              // color="rgba(5, 123, 227, 0.1)"
               transparent
-              opacity={0.6}
+              opacity={0}
               transmission={0.3}
               roughness={0}
               metalness={0.1}
@@ -144,8 +173,6 @@ const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
           </mesh>
         </RigidBody>
       )}
-
-      {/* Une fois brisée, on affiche les fragments */}
       {isBroken && fragments}
     </>
   );

@@ -12,8 +12,8 @@ import { RoundedBox } from '@react-three/drei';
 
 interface GroundDiceProps {
   targetRotation: THREE.Euler;
-  onBrickDestroyed: (brickId: string) => void;
-  onLetterFallen: (letter: string) => void;
+ // onBrickDestroyed: (brickId: string) => void;
+ // onLetterFallen: (letter: string) => void;
   sizeZ?: number; // Nouvelle prop pour la taille sur l'axe z
 }
 
@@ -25,7 +25,7 @@ declare module '@react-three/fiber' {
   }
 }
 
-const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroyed, onLetterFallen }) => {
+const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation }) => {
   const groundRef = useRef(null);
   const groundRef2 = useRef(null);
   const currentRotation = useRef(new THREE.Euler(0, 0, 0, 'XYZ'));
@@ -100,8 +100,8 @@ const GroundDice: React.FC<GroundDiceProps> = ({ targetRotation, onBrickDestroye
       {/* Lettres "VISUALISATION" flottantes */}
       <FloatingLetters
         letters={['V', 'I', 'S', 'U', 'A', 'L', 'I', 'Z', 'A', 'T', 'I', 'O', 'N']}
-        onBrickDestroyed={onBrickDestroyed}
-        onLetterFallen={onLetterFallen}
+        //onBrickDestroyed={onBrickDestroyed}
+        //onLetterFallen={onLetterFallen}
       />
     </>
   );

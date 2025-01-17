@@ -19,7 +19,7 @@ export interface CustomRigidBodyApi  {
 }
 
 interface WallOfBricksProps {
-  onBrickDestroyed: (brickId: string) => void;
+  
   onLetterFallen: (letter: string) => void;
   position: Vector3;
   rotation: Euler;
@@ -36,7 +36,7 @@ interface DataLetter {
 }
 
 const WallOfBricks: React.FC<WallOfBricksProps> = ({
-  onBrickDestroyed,
+ 
   onLetterFallen,
   position,
   rotation,
@@ -94,7 +94,7 @@ const WallOfBricks: React.FC<WallOfBricksProps> = ({
   // --- 3) Callback quand une brique est détruite ---
   const handleBrickDestroyedInternal = (brickId: string) => {
     setActiveBricks((prev) => prev.filter((id) => id !== brickId));
-    onBrickDestroyed(brickId);
+    
 
     // Vérifier si c'était la brique d'une lettre "DATA"
     // => on signale la chute
@@ -203,9 +203,9 @@ const WallOfBricks: React.FC<WallOfBricksProps> = ({
               />
               <meshPhysicalMaterial
               color="lightgrey" // Bleu avec opacité
-              transparent
+              //transparent
               opacity={1}
-              transmission={0.5} // Pour une transparence complète
+              transmission={1} // Pour une transparence complète
               roughness={0} // Surface très lisse
               metalness={0.1} // Augmenter pour plus de réflexions
               ior={1.5} // Indice de réfraction typique du verre

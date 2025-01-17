@@ -11,8 +11,8 @@ import { Vector } from '@dimforge/rapier3d';
 
 interface FloatingLettersProps {
   letters: string[];
-  onBrickDestroyed: (brickId: string) => void;
-  onLetterFallen: (letter: string) => void;
+ // onBrickDestroyed: (brickId: string) => void;
+ // onLetterFallen: (letter: string) => void;
 }
 
 export interface UserData {
@@ -29,7 +29,7 @@ export interface CustomRigidBodyApi {
   translation: () => Vector;
   // Ajoutez d'autres méthodes si nécessaire
 }
-const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestroyed, onLetterFallen }) => {
+const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters }) => {
   const lettersRefs: React.MutableRefObject<(CustomRigidBodyApi | null)[]> = useRef<(CustomRigidBodyApi | null)[]>([]);
   const font = useMemo(() => new FontLoader().parse(myfont), []);
 
@@ -77,7 +77,7 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
       const userData = otherBody.userData as UserData | undefined;
   
       if (userData?.type === 'brick') {
-        onBrickDestroyed(userData.id || '');
+       // onBrickDestroyed(userData.id || '');
       }
       // Cas 2: Touche l'écran invisible
       else if (userData?.type === 'invisibleScreen') {
@@ -117,9 +117,9 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters, onBrickDestr
           <textGeometry args={[text, { font, size: 2.5, depth: 1.3 }]} />
           <meshPhysicalMaterial
               color="lightgrey" // Bleu avec opacité
-              transparent
+              //transparent
               opacity={1}
-              transmission={0.5} // Pour une transparence complète
+              transmission={1} // Pour une transparence complète
               roughness={0} // Surface très lisse
               metalness={0.1} // Augmenter pour plus de réflexions
               ior={1.5} // Indice de réfraction typique du verre
