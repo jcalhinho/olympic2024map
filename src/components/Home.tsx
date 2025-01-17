@@ -1,11 +1,11 @@
 // src/components/Home.tsx
 import React, {  useEffect,  useState } from 'react';
-import { Canvas,  } from '@react-three/fiber';
+import { Canvas, useLoader,  } from '@react-three/fiber';
 import { Environment, OrbitControls } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import GroundDice from './GroundDice';
 import WallOfBricks from './WallOfBricks';
-import {  Euler } from 'three';
+import {  Euler, TextureLoader } from 'three';
 
 import { motion } from 'framer-motion';
 import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
@@ -13,6 +13,20 @@ import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import ShatteredGlass from './ShatteredGlass';
 
 
+
+const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> = ({ url, position }) => {
+  const texture = useLoader(TextureLoader, url);
+
+  return (
+    <mesh position={position}>
+      <planeGeometry args={[38, 21.5]} />
+      <meshStandardMaterial  map={texture}
+        // emissive={'#ffffff'}       // Couleur émisseuse blanche
+        // emissiveIntensity={0.1}
+          />
+    </mesh>
+  );
+};
 
 const Home: React.FC = () => {
   // État de rotation cible
@@ -79,13 +93,26 @@ const Home: React.FC = () => {
  
  
   useEffect(() => {
-    if(isBroken){
+    if (isBroken) {
+      // Message immédiatement après la casse
       setTopMessage('Wo-wo-wo, you broke the glass!');
-      setTimeout(() => {
-        setTopMessage('');
+      
+      // Après 6 secondes, afficher le message pour calmer l’utilisateur et éventuellement l'image
+      const timer1 = setTimeout(() => {
+        setTopMessage('To calm you down, here is a cute image ^^');
+        
+        // Ensuite, après 10 secondes, réinitialiser le message
+        const timer2 = setTimeout(() => {
+          setTopMessage('');
+        }, 10000);
+        
+        // Nettoyage éventuel du deuxième timer
+        return () => clearTimeout(timer2);
       }, 6000);
+      
+      // Nettoyage du premier timer
+      return () => clearTimeout(timer1);
     }
-    
   }, [isBroken]);
  
   const [sceneKey, setSceneKey] = useState(0);
@@ -107,7 +134,11 @@ const Home: React.FC = () => {
       
     }
   }, [fallenDataLetters]);
-
+  useEffect(() => {
+    if (bricksShouldFall && !isBroken) {
+      setTopMessage("Maybe there's something else to break?");
+    }
+  }, [bricksShouldFall,isBroken]);
   return (
     <div className="relative overflow-hidden">
      
@@ -123,7 +154,7 @@ const Home: React.FC = () => {
             backgroundColor: 'transparent',
             color: 'white',
             padding: '10px',
-            zIndex: 1000,
+            zIndex: 1,
           }}
         >
           {topMessage}
@@ -142,10 +173,15 @@ const Home: React.FC = () => {
           width: '100vw',
           background: 'linear-gradient(to bottom, #000428, #004e92)',
         }}
-      > <Environment preset="night"  />
-        {/* <ImagePlane url="/public/corgi.jpg" position={[0, 15.5, -20]} /> */}
+      > 
+      <Environment preset="night"  />
+      <ambientLight intensity={0.5} />
+
+      {topMessage === 'To calm you down, here is a cute image ^^' && (
+  <ImagePlane url="/public/corgi.jpg" position={[0, 35.5, -20]} />
+)}
         {/* Lumières */}
-        <ambientLight intensity={0.1} />
+        <ambientLight intensity={0.8} />
         <directionalLight
           position={[10, 20, 10]}
           intensity={1}
@@ -179,7 +215,7 @@ const Home: React.FC = () => {
           />
           <ShatteredGlass
             position={[0, 25, 70]}   // Position dans la scène
-            size={[20, 20, 0.8]}    // Largeur/hauteur/épaisseur
+            size={[80, 80, 0.8]}    // Largeur/hauteur/épaisseur
             isBroken={isBroken}
             setIsBroken={setIsBroken}
           />
@@ -196,7 +232,7 @@ const Home: React.FC = () => {
         />
       </Canvas>
 
-      <div className="absolute bottom-5 right-5 flex flex-col space-y-2">
+      <div className="absolute bottom-[45%] right-5 flex flex-col space-y-2">
         {/* Bouton Haut */}
         <motion.button
           whileHover={{ scale: 1.2 }}
