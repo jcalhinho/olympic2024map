@@ -21,8 +21,7 @@ const ImagePlane: React.FC<{ url: string; position: [number, number, number] }> 
     <mesh position={position}>
       <planeGeometry args={[38, 21.5]} />
       <meshStandardMaterial  map={texture}
-        // emissive={'#ffffff'}       // Couleur émisseuse blanche
-        // emissiveIntensity={0.1}
+       
           />
     </mesh>
   );
@@ -178,7 +177,7 @@ const Home: React.FC = () => {
       <ambientLight intensity={0.5} />
 
       {topMessage === 'To calm you down, here is a cute image ^^' && (
-  <ImagePlane url="/public/corgi.jpg" position={[0, 35.5, -20]} />
+  <ImagePlane url="/corgi.jpg" position={[0, 35.5, -20]} />
 )}
         {/* Lumières */}
         <ambientLight intensity={0.8} />
