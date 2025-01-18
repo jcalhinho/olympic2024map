@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Billboard } from '@react-three/drei';
+import { OrbitControls, Text, Billboard, Environment } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
 import { FiSettings, FiX, FiRefreshCw, FiList } from 'react-icons/fi';
@@ -126,7 +126,17 @@ const PieSlice: React.FC<PieSliceProps> = ({
         onPointerOut={handlePointerOut}   // Gérer la sortie du survol ici
         onPointerDown={handlePointerDown} // Gérer le clic ici
       >
-        <meshStandardMaterial color={meshColor} />
+        <meshPhysicalMaterial
+  color={meshColor}
+  roughness={0.3} // Niveau de rugosité
+  metalness={0.5} // Intensité métallique
+  transparent
+  opacity={1} // Transparence
+  transmission={0.5} // Transparence pour simuler du verre ou du plastique
+  ior={1.5} // Indice de réfraction (1.5 pour le verre)
+  thickness={0.2} // Épaisseur virtuelle
+  reflectivity={0.5} // Réflexions
+/>
       </mesh>
 
       {/* Label */}
@@ -344,10 +354,10 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
         shadows onPointerLeave={() => setHoveredIndex(null)}
       >
         {/* Lumières */}
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 5, 5]} intensity={1} castShadow />
-        <spotLight position={[-5, 5, 5]} angle={0.3} intensity={1} castShadow />
-
+        <ambientLight intensity={0.3} /> {/* Lumière ambiante douce */}
+<directionalLight position={[5, 5, 5]} intensity={0.8} /> {/* Lumière directionnelle */}
+<pointLight position={[-5, -5, 5]} intensity={0.5} /> {/* Lumière ponctuelle */}
+<Environment preset="sunset" /> 
         {/* Pie Chart Animé avec AnimatedGroup */}
         <AnimatedGroup
           groupRef={groupRef}
@@ -393,6 +403,7 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
                 onHover={handleSliceHover}
                 onUnhover={handleSliceUnhover}
               />
+             
             );
           })}
         </AnimatedGroup>

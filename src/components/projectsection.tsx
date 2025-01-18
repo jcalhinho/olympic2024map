@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Billboard, OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
+import { Billboard, Environment, OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { FiList, FiSettings, FiX } from 'react-icons/fi'; // Import des icônes
 import { motion, AnimatePresence } from 'framer-motion'; // Import de framer-motion
@@ -584,7 +584,10 @@ const MultiProto: React.FC<MultiProtoProps> = ({
       shadows
     >
       <PerspectiveCamera makeDefault position={[0, 0, 1200]} far={100000} />
-      <ambientLight intensity={0.5} />
+         <ambientLight intensity={0.3} /> {/* Lumière ambiante douce */}
+      <directionalLight position={[5, 5, 5]} intensity={0.4} /> {/* Lumière directionnelle */}
+      <pointLight position={[-5, -5, 5]} intensity={0.5} /> {/* Lumière ponctuelle */}
+      <Environment preset="night" /> 
       <directionalLight
         castShadow
         intensity={1}
