@@ -33,18 +33,18 @@ const Fragment: React.FC<{
       <mesh castShadow receiveShadow>
         <primitive object={geometry} attach="geometry" />
         <meshPhysicalMaterial
-          side={THREE.DoubleSide}
-          color="rgba(5, 123, 227, 0.1)"
-          transparent
-          opacity={0.6}
-          transmission={1}
-          roughness={0}
-          metalness={0.1}
-          ior={1.5}
-          reflectivity={0.4}
-          thickness={1}
-          envMapIntensity={1}
-        />
+              color="rgba(5, 123, 227, 0.5)" // Bleu avec opacité
+              transparent
+              opacity={0.6}
+              transmission={1} // Pour une transparence complète
+              roughness={0} // Surface très lisse
+              metalness={0.1} // Augmenter pour plus de réflexions
+              ior={1.5} // Indice de réfraction typique du verre
+              reflectivity={0.4} // Augmenter pour des réflexions plus prononcées
+              thickness={1} // Épaisseur du matériau
+              envMapIntensity={1} // Intensité des réflexions de l'environnement
+            
+            />
       </mesh>
     </RigidBody>
   );
@@ -61,8 +61,8 @@ interface ShatteredGlassProps {
 }
 
 const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
-  position = [0, 0, 0],
-  size = [90, 90, 0.8],
+  position ,
+  size,
   isBroken,
   setIsBroken,
 }) => {
@@ -106,7 +106,8 @@ const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
     // Par exemple, positionner les fragments à 2 unités devant la caméra
     const fragmentStartPos = camPos.add(forward.multiplyScalar(2));
-  
+    fragmentStartPos.x -= 40;
+  console.log(fragmentStartPos)
     // Génération des fragments (le reste du code reste identique)
     const numPoints = 30;
     const points: [number, number][] = [];

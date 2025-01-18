@@ -26,7 +26,19 @@ const ExplosionParticles: React.FC<ExplosionParticlesProps> = ({ position }) => 
       {particles.map((p, idx) => (
         <mesh key={idx} position={[p.x, p.y, p.z]}>
           <sphereGeometry args={[0.1, 8, 8]} />
-          <meshStandardMaterial color={"grey"} />
+          <meshPhysicalMaterial
+              color="rgba(5, 123, 227, 0.5)" // Bleu avec opacité
+              transparent
+              opacity={0.6}
+              transmission={1} // Pour une transparence complète
+              roughness={0} // Surface très lisse
+              metalness={0.1} // Augmenter pour plus de réflexions
+              ior={1.5} // Indice de réfraction typique du verre
+              reflectivity={0.4} // Augmenter pour des réflexions plus prononcées
+              thickness={1} // Épaisseur du matériau
+              envMapIntensity={1} // Intensité des réflexions de l'environnement
+            
+            />
         </mesh>
       ))}
     </group>
