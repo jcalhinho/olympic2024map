@@ -5,6 +5,7 @@ import ProjectsSection from './components/projectsection';
 import Home from './components/Home';
 
 import PieChartSection from './components/PieChartSection';
+import BarChartSection from './components/BarGraphSection';
 
 
 // Composant App avec Navigation
@@ -49,7 +50,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/projects/sankey3d" element={<ProjectsSection />} />
           <Route path="/projects/piechart" element={<PieChartSection  />} /> {/* Mise à jour de la route */}
-          <Route path="/projects/bargraph" element={<div>Bar Graph Page</div>} />
+          <Route path="/projects/bargraph" element={<BarChartSection  />} />
           <Route path="/who" element={<AboutSection />} />
         </Routes>
       </main>
