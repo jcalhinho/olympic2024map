@@ -62,7 +62,7 @@ interface ShatteredGlassProps {
 
 const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
   position ,
-  size,
+  size = [10, 10, 0.5], // Default size if not provided
   isBroken,
   setIsBroken,
 }) => {
@@ -113,7 +113,7 @@ const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
     const points: [number, number][] = [];
     for (let i = 0; i < numPoints; i++) {
       points.push([
-        Math.random() * size[0],
+        Math.random() * (size ? size[0] : 10),
         Math.random() * size[1],
       ]);
     }
