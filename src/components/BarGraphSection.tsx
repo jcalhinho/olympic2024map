@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Billboard, Environment, OrbitControls, Text } from '@react-three/drei';
+import { Billboard, Environment, OrbitControls, RoundedBox, Text } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
 import * as THREE from 'three';
 import { FiList, FiSettings, FiX } from 'react-icons/fi';
 import { AnimatePresence, motion } from 'framer-motion';
 
 
+function generateRandomMonthlyDistribution(total: number, months: number = 12): number[] {
+  const raw = Array.from({ length: months }, () => Math.random());
+  const sum = raw.reduce((acc, val) => acc + val, 0);
+  
+  const distribution = raw.map(val => Math.round((val / sum) * total));
+
+  
+  const diff = total - distribution.reduce((acc, val) => acc + val, 0);
+  distribution[0] += diff; 
+  return distribution;
+}
 
 const socialDataFull = [
   { network: 'X', posts: 82000000, color: 'cyan' },
@@ -29,18 +40,34 @@ const socialDataFull = [
   { network: 'Flickr', posts: 500000, color: 'coral' },
   { network: 'Periscope', posts: 1000000, color: 'olive' },
   { network: 'Mix', posts: 800000, color: 'goldenrod' },
-];
+].map(item => ({
+  ...item,
+  // Génère une distribution mensuelle inégale, dont la somme est égale à la valeur annuelle
+  monthlyPosts: generateRandomMonthlyDistribution(item.posts)
+}));
+
+/**
+ * La fonction mise à jour qui génère le mapping par Top,
+ * en convertissant les posts annuels et mensuels en millions.
+ */
 const generateSocialDataMap = () => {
   const map: { [key: number]: typeof socialDataFull } = {};
   const topCounts = [4, 6, 8, 12, 20];
 
   topCounts.forEach((count) => {
     map[count] = socialDataFull
-      .slice(0, count) // 
-      .map((item) => ({
-        ...item,
-        posts: Math.round(item.posts / 1000000), 
-      }));
+      .slice(0, count)
+      .map((item) => {
+        const yearlyPostsInMillions = Math.round(item.posts / 1000000);
+        const monthlyPostsInMillions = item.monthlyPosts.map(monthlyPost =>
+          Math.round(monthlyPost / 1000000)
+        );
+        return {
+          ...item,
+          posts: yearlyPostsInMillions,
+          monthlyPosts: monthlyPostsInMillions,
+        };
+      });
   });
 
   return map;
@@ -125,10 +152,7 @@ function generateFaceData(geometry: THREE.BufferGeometry) {
   return faceData;
 }
 
-/**
- * Pour l'arrangement "à plat" (mode « déplié »), on définit
- * un layout 2D : ici les blocs sont alignés sur l'axe X.
- */
+
 function get2DLayout(count: number) {
   // On définit un espacement constant (ici 1) et on centre le tout.
   const spacing = 0.7;
@@ -136,12 +160,10 @@ function get2DLayout(count: number) {
   const layout = [];
   for (let i = 0; i < count; i++) {
     const x = startX + i * spacing;
-    // Ici, la position 2D sera sur l'axe X, avec y = 0 et z = 0.
-    // La rotation est fixée pour que le bloc soit debout :
-    // Une rotation de -90° autour de l'axe X fait passer l'axe Z en axe Y.
+   
     layout.push({
       center: new THREE.Vector3(x, 0, 0),
-      // Pour que la barre soit "debout", on la fait pivoter de -90° autour de X.
+      
       normal: new THREE.Vector3(0, 0, 0),
       rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
     });
@@ -149,35 +171,7 @@ function get2DLayout(count: number) {
   return layout;
 }
 
-/**
- * Composant Block : représente le bloc 3D d'un réseau social.
- */
-const Block = ({
-  position,
-  size,
-  color,
-  onClick,
-}: {
-  position: [number, number, number];
-  size: [number, number, number];
-  color: string;
-  onClick?: () => void;
-}) => (
-  <mesh position={position} onClick={onClick} castShadow receiveShadow>
-    <boxGeometry args={size} />
-    <meshPhysicalMaterial
-      color={color}
-      roughness={0.3}
-      metalness={0.5}
-      transparent
-      opacity={1}
-      transmission={0.5}
-      ior={1.5}
-      thickness={0.2}
-      reflectivity={0.5}
-    />
-  </mesh>
-);
+
 
 
 
@@ -187,22 +181,23 @@ interface SubdividingBlockProps {
   isUnfolded: boolean;
   toggleUnfold: () => void;
   highlightedNetwork: string | null;
+  showMonthly: boolean;
 }
 
 const SubdividingBlock = ({
   numFaces,
   isUnfolded,
- 
+  showMonthly,
   highlightedNetwork,
 }: SubdividingBlockProps) => {
-  const [isDivided, setIsDivided] = useState(false);
+  const [isDivided, setIsDivided] = useState(true);
   const toggleDivide = () => setIsDivided((prev) => !prev);
 
-  // Trier les données pour le top choisi (on utilise le mapping selon le nombre de faces)
+ 
   const socialData = [...(socialDataMap[numFaces] || [])].sort((a, b) => b.posts - a.posts);
   const maxPosts = socialData.reduce((max, d) => (d.posts > max ? d.posts : max), 0);
 
-  // Création de la géométrie centrale en fonction du nombre de faces
+  
   let parentGeometry: THREE.BufferGeometry;
   switch (numFaces) {
     case 4:
@@ -225,168 +220,309 @@ const SubdividingBlock = ({
   }
   parentGeometry.computeVertexNormals();
 
-  // Layouts 3D et 2D
+  
   const faceLayout3D = get3DLayout(numFaces, parentGeometry);
   const twoDLayout = get2DLayout(socialData.length);
   const { positionY } = useSpring({
     positionY: isUnfolded ? -2 : 0, // Passe de 0 à -2 sur l'axe Y
     config: config.gentle,
   });
-  // Animation pour la division
+  
   const springs = useSpring({
     offset: isDivided ? 0.5 : 0,
     scale: isDivided ? 1 : 0,
     config: config.wobbly,
   });
 
-  // Animation pour le dépliage
+  
   const { fraction } = useSpring({
     fraction: isUnfolded ? 1 : 0,
     config: config.gentle,
   });
 
-  // Détermine l'index du réseau mis en avant dans socialData (s'il existe)
+
   const highlightIndex = socialData.findIndex(
     (d) => d.network === highlightedNetwork
   );
 
-  // SPRING pour faire tourner l'ensemble de la géométrie en mode "assemblé" seulement
-  // Si un réseau est sélectionné et qu'on n'est pas en mode déplié, on calcule la rotation cible
+
   let targetRotation: [number, number, number] = [0, 0, 0];
   if (!isUnfolded && highlightIndex !== -1 && faceLayout3D[highlightIndex]) {
-    // On souhaite aligner la normale de la face sélectionnée avec (0,0,1)
+
     const faceNormal = faceLayout3D[highlightIndex].normal.clone().normalize();
     const targetQuat = new THREE.Quaternion().setFromUnitVectors(faceNormal, new THREE.Vector3(0, 1, 0));
     const targetEuler = new THREE.Euler().setFromQuaternion(targetQuat);
     targetRotation = [targetEuler.x, targetEuler.y, targetEuler.z];
-    console.log(targetRotation)
+   
   }
-  console.log(targetRotation)
+
   const { parentRotation } = useSpring<any>({
     parentRotation: targetRotation,
     config: config.gentle,
   });
+  const rowSpacing = 1.2;
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   return (
     <animated.group rotation={parentRotation}>
-    {/* La forme centrale cliquable avec animation de la position */}
-    <animated.mesh
-      geometry={parentGeometry}
-      position-y={positionY}
-      onClick={toggleDivide}
-      castShadow
-      receiveShadow
-    >
-      <meshPhysicalMaterial
-        color="orange"
-        roughness={0.3}
-        metalness={0.5}
-        transparent
-        opacity={1}
-        transmission={0.5}
-        ior={1.5}
-        thickness={0.2}
-        reflectivity={0.5}
-      />
-    </animated.mesh>
+      <animated.mesh
+        geometry={parentGeometry}
+        position-y={positionY}
+        onClick={toggleDivide}
+        castShadow
+        receiveShadow
+      >
+        <meshPhysicalMaterial color="rgba(59, 213, 227, 0.8)" 
+          transparent
+          opacity={0.7}
+          transmission={1.8} 
+          roughness={2} 
+          metalness={0.6} 
+          ior={1.5} 
+          reflectivity={4} 
+          thickness={1} 
+          envMapIntensity={10} 
+        />
+      </animated.mesh>
+      {showMonthly ? (
+        
+        Array.from({ length: 12 }).map((_, month) => {
+          return (
+            <animated.group key={`month-${month}`} position={[0, 0, -rowSpacing * month]}>
+              {socialData.map((data, i) => {
+                if (!faceLayout3D[i] || !twoDLayout[i]) return null;
 
-      {/* Les blocs pour chaque réseau */}
-      {socialData.map((data, i) => {
-        if (!faceLayout3D[i] || !twoDLayout[i]) return null;
-        const postsScale = data.posts / maxPosts;
-        const barHeight = 0.5 + postsScale;
+                // Récupération de la valeur du mois et calcul de l'échelle
+                const postsValue = data.monthlyPosts[month];
+                const maxMonthly = socialData.reduce(
+                  (max, d) => (d.monthlyPosts[month] > max ? d.monthlyPosts[month] : max),
+                  0
+                );
+                const postsScale = postsValue / (maxMonthly || 1);
+                const barHeight = 0.5 + postsScale;
 
-        // Layout 3D
-        const c3 = faceLayout3D[i].center;
-        const n3 = faceLayout3D[i].normal;
-        // Ajustement pour positionner la barre de sorte que sa base touche la face
-        const adjustedPosition = c3.clone().add(n3.clone().multiplyScalar(barHeight / 2));
+                const c3 = faceLayout3D[i].center;
+                const n3 = faceLayout3D[i].normal;
+                const adjustedPosition = c3.clone().add(n3.clone().multiplyScalar(barHeight / 2));
+                const q3D = new THREE.Quaternion().setFromUnitVectors(
+                  new THREE.Vector3(0, 0, 1),
+                  n3.clone().normalize()
+                );
+                const e3D = new THREE.Euler().setFromQuaternion(q3D);
+                const c2 = twoDLayout[i].center;
+                const e2D = twoDLayout[i].rotation;
 
-        // Calcul de la rotation pour aligner la barre à la face
-        const q3D = new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0, 0, 1),
-          n3.clone().normalize()
-        );
-        const e3D = new THREE.Euler().setFromQuaternion(q3D);
+                const animatedPosition = fraction.to((f) => {
+                  const x = adjustedPosition.x + (c2.x - adjustedPosition.x) * f;
+                  let y = adjustedPosition.y * (1 - f) + f * ((0.5 + postsScale) / 2);
+                  if (isUnfolded && data.network === highlightedNetwork) {
+                    y += 0.5;
+                  }
+                  const z = adjustedPosition.z + (c2.z - adjustedPosition.z) * f;
+                  return [x, y, z];
+                });
+                const q3 = new THREE.Quaternion().setFromEuler(e3D);
+                const q2 = new THREE.Quaternion().setFromEuler(e2D);
+                const animatedRotation = fraction.to((f) => {
+                  const qm = q3.clone().slerp(q2, f);
+                  const e = new THREE.Euler().setFromQuaternion(qm);
+                  return [e.x, e.y, e.z];
+                });
+                const animatedScale = springs.scale.to((s) => {
+                  if (highlightedNetwork && !isUnfolded) {
+                    return highlightedNetwork === data.network ? [s, s, s] : [0, 0, 0];
+                  }
+                  return [s, s, s];
+                });
 
-        // Layout 2D
-        const c2 = twoDLayout[i].center;
-        const e2D = twoDLayout[i].rotation;
-      
-      //  Interpolation de la position en fonction du mode déplié/non déplié
-        const animatedPosition = fraction.to((f) => {
-          const x = adjustedPosition.x + (c2.x - adjustedPosition.x) * f;
-          // Si le bloc est sélectionné en mode déplié, force l'axe X à zéro.
+                return (
+                  <animated.group
+                    key={`${month}-${i}`}
+                    position={animatedPosition as any}
+                    rotation={animatedRotation as any}
+                    scale={animatedScale as any}
+                  >
+                    <RoundedBox
+                      args={[0.5, 0.5, 0.5 + postsScale]}
+                      radius={0.05}
+                      smoothness={2}
+                    >
+                      <meshPhysicalMaterial
+                        color={data.color}
+                        roughness={0.3}
+                        metalness={0.5}
+                        transparent
+                        opacity={1}
+                        transmission={0.5}
+                        ior={1.5}
+                        thickness={0.2}
+                        reflectivity={0.5}
+                      />
+                    </RoundedBox>
 
-          let y = adjustedPosition.y * (1 - f) + f * ((0.5 + postsScale) / 2);
-          if (isUnfolded && data.network === highlightedNetwork) {
-            y += 0.5; // soulève de 10 unités
-          }
-         
-          const z = adjustedPosition.z + (c2.z - adjustedPosition.z) * f;
-          return [x, y, z];
-        });
 
-        // Interpolation de la rotation entre la rotation 3D et la rotation 2D
-        const q3 = new THREE.Quaternion().setFromEuler(e3D);
-        const q2 = new THREE.Quaternion().setFromEuler(e2D);
-        const animatedRotation = fraction.to((f) => {
-          const qm = q3.clone().slerp(q2, f);
-          const e = new THREE.Euler().setFromQuaternion(qm);
-          return [e.x, e.y, e.z];
-        });
-        const animatedScale = springs.scale.to((s) => {
-          if (highlightedNetwork && !isUnfolded) {
-            // Si un réseau est sélectionné, cacher les autres barres
-            return highlightedNetwork === data.network ? [s, s, s] : [0, 0, 0];
-          }
-          // Sinon, afficher toutes les barres
-          return [s, s, s];
-        });
-        return (
-          <animated.group
-            key={i}
-            position={animatedPosition as any}
-            rotation={animatedRotation as any}
-            scale={animatedScale as any}//|| 
-             
-          >
-            <Block
-              position={[0, 0, 0]}
-              size={[0.5, 0.5, 0.5 + postsScale]}
-              color={data.color}
-              onClick={toggleDivide}
-            />
-            <Billboard position={[0, 0, barHeight / 2 + 0.3]}
-      rotation={[Math.PI / 2,0,0]}>
-             <Text
-      
-      fontSize={0.15}
-      color="white"
-      anchorX="center"
-      anchorY="bottom"
-    >
-       
-       {highlightedNetwork === data.network ? (
-    <>
-      <Text fontSize={0.15} color="white" anchorX="center" anchorY="middle">
-        avg posts by day: {data.posts}M
-      </Text>
-      <Text fontSize={0.15} color="white" anchorX="center" anchorY="top" position={[0, -0.1, 0]}>
-        {data.network}
-      </Text>
-    </>
-  ) : (
-    <Text fontSize={0.15} color="white" anchorX="center" anchorY="bottom">
-      {data.network}
-    </Text>
-  )}
-    </Text>
-            </Billboard>
-            
-          </animated.group>
-        );
-      })}
+
+                    {highlightedNetwork && data.network === highlightedNetwork ? (
+                      <Billboard
+                        position={[0, 0, barHeight / 2 + 0.3]}
+                        rotation={[Math.PI / 2, 0, 0]}
+                      >
+                        
+
+
+                        <Text fontSize={0.15} color="white" anchorX="center" anchorY="middle">
+                          {/* avg posts by day:  */}
+                          {data.monthlyPosts[month]}M
+                        </Text>
+                        <Text fontSize={0.15} color="white" anchorX="center" anchorY="top" position={[0, -0.1, 0]}>
+                          {month === 0 && data.network}
+                        </Text>
+                      </Billboard>
+                    ) : (
+                      // Afficher uniquement sur le premier mois pour les réseaux non surlignés
+                      month === 0 && (
+                        <Billboard
+                          position={[0, 0, barHeight / 2 + 0.3]}
+                          rotation={[Math.PI / 2, 0, 0]}
+                        >
+                          <Text fontSize={0.15} color="white" anchorX="center" anchorY="top" position={[0, -0.1, 0]}>
+                            {data.network}
+                          </Text>
+                        </Billboard>
+                      )
+                    )}
+
+                  </animated.group>
+                );
+              })}
+
+              {!isDivided || showMonthly && <Billboard
+                position={[
+                  twoDLayout[twoDLayout.length - 1]?.center.x + 0.4,
+                  twoDLayout[twoDLayout.length - 1]?.center.y + 0.2,
+                  twoDLayout[twoDLayout.length - 1]?.center.z,
+                ]}
+                rotation={[0, 0, 0]}
+              >
+                <Text fontSize={0.2} color="white" anchorX="left" anchorY="middle">
+                  {monthNames[month]}
+                </Text>
+              </Billboard>}
+
+            </animated.group>
+          );
+        })
+      ) : (
+
+        socialData.map((data, i) => {
+          if (!faceLayout3D[i] || !twoDLayout[i]) return null;
+          const postsScale = data.posts / maxPosts;
+          const barHeight = 0.5 + postsScale;
+
+
+          const c3 = faceLayout3D[i].center;
+          const n3 = faceLayout3D[i].normal;
+
+          const adjustedPosition = c3.clone().add(n3.clone().multiplyScalar(barHeight / 2));
+
+
+          const q3D = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 0, 1),
+            n3.clone().normalize()
+          );
+          const e3D = new THREE.Euler().setFromQuaternion(q3D);
+
+
+          const c2 = twoDLayout[i].center;
+          const e2D = twoDLayout[i].rotation;
+
+
+          const animatedPosition = fraction.to((f) => {
+            const x = adjustedPosition.x + (c2.x - adjustedPosition.x) * f;
+
+
+            let y = adjustedPosition.y * (1 - f) + f * ((0.5 + postsScale) / 2);
+            if (isUnfolded && data.network === highlightedNetwork) {
+              y += 0.5;
+            }
+
+            const z = adjustedPosition.z + (c2.z - adjustedPosition.z) * f;
+            return [x, y, z];
+          });
+
+
+          const q3 = new THREE.Quaternion().setFromEuler(e3D);
+          const q2 = new THREE.Quaternion().setFromEuler(e2D);
+          const animatedRotation = fraction.to((f) => {
+            const qm = q3.clone().slerp(q2, f);
+            const e = new THREE.Euler().setFromQuaternion(qm);
+            return [e.x, e.y, e.z];
+          });
+          const animatedScale = springs.scale.to((s) => {
+            if (highlightedNetwork && !isUnfolded) {
+
+              return highlightedNetwork === data.network ? [s, s, s] : [0, 0, 0];
+            }
+
+            return [s, s, s];
+          });
+          return (
+            <animated.group
+              key={i}
+              position={animatedPosition as any}
+              rotation={animatedRotation as any}
+              scale={animatedScale as any}//|| 
+
+            >
+              <RoundedBox
+                args={[0.5, 0.5, 0.5 + postsScale]} // Taille de la barre
+                radius={0.05} // Rayon des coins arrondis
+                smoothness={2} // Lissage des coins
+              >
+                <meshPhysicalMaterial
+                  color={data.color}
+                  roughness={0.3}
+                  metalness={0.5}
+                  transparent
+                  opacity={1}
+                  transmission={0.5}
+                  ior={1.5}
+                  thickness={0.2}
+                  reflectivity={0.5}
+                />
+              </RoundedBox>
+              <Billboard position={[0, 0, barHeight / 2 + 0.3]}
+                rotation={[Math.PI / 2, 0, 0]}>
+                <Text
+
+                  fontSize={0.15}
+                  color="white"
+                  anchorX="center"
+                  anchorY="bottom"
+                >
+
+                  {highlightedNetwork === data.network ? (
+                    <>
+                      <Text fontSize={0.15} color="white" anchorX="center" anchorY="middle">
+                        avg posts by day: {data.posts}M
+                      </Text>
+                      <Text fontSize={0.15} color="white" anchorX="center" anchorY="top" position={[0, -0.1, 0]}>
+                        {data.network}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text fontSize={0.15} color="white" anchorX="center" anchorY="bottom" position={[0, -0.20, 0]}>
+                      {data.network}
+                    </Text>
+                  )}
+                </Text>
+              </Billboard>
+
+            </animated.group>
+          );
+        })
+      )}
     </animated.group>
   );
 };
@@ -395,151 +531,164 @@ const BarGraphSection = () => {
   const shapeOptions = [4, 6, 8, 12, 20];
 
   const [numFaces, setNumFaces] = useState(8);
-  const [isUnfolded, setIsUnfolded] = useState(false);
+  const [isUnfolded, setIsUnfolded] = useState(true);
   const [highlightedNetwork, setHighlightedNetwork] = useState<string | null>(null);
- // Réseaux actuellement affichés dans le top sélectionné
- const currentTopNetworks = socialDataMap[numFaces] || [];
+
+  const currentTopNetworks = socialDataMap[numFaces] || [];
   const handleTopSelection = (faces: number) => {
     setNumFaces(faces);
-    setHighlightedNetwork(null); // réinitialise la sélection
+    setHighlightedNetwork(null);
   };
+  useEffect(() => {
+    if (!isUnfolded) {
+      setShowMonthly(false);
+    }
+  }, [isUnfolded]);
 
-  // Lorsqu'on clique sur un bouton réseau :
-  // En mode non déplié, cela fera tourner la géométrie pour mettre en avant le réseau
-  // En mode déplié, cela soulèvera le bloc (cf. SubdividingBlock)
   const handleNetworkHighlight = (network: string) => {
     setHighlightedNetwork((prev) => (prev === network ? null : network));
   };
-const [showTopList, setShowTopList] = useState(false);
-const [showNetworkList, setShowNetworkList] = useState(false);
+  const [showTopList, setShowTopList] = useState(false);
+  const [showNetworkList, setShowNetworkList] = useState(true);
+  const [showMonthly, setShowMonthly] = useState(false);
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-     
+      {/* Bouton de bascule pour le mode mensuel (visible uniquement si isUnfolded) */}
+      {isUnfolded && (
+        <div className="absolute top-[10%] right-0  z-10">
+          <button
+            onClick={() => setShowMonthly((prev) => !prev)}
+            className="p-2 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+            aria-label="Toggle Monthly View"
+          >
+            {showMonthly ? 'Year view' : 'Monthly view'}
+          </button>
+        </div>
+      )}
+
       <AnimatePresence>
-  {/* Bouton en haut à droite pour le dépliement */}
-  <div className="absolute bottom-0 right-0 z-10">
-    <motion.button
-      key="toggle-unfold"
-      initial={{ opacity: 0, scale: 0 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0 }}
-      transition={{ duration: 0.3 }}
-      onClick={() => setIsUnfolded((prev) => !prev)}
-      className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
-      aria-label="Toggle Unfold"
-    >
-      <FiSettings size={24} />
-    </motion.button>
-  </div>
-</AnimatePresence>
 
-<AnimatePresence>
-  {/* Liste des choix de tops au milieu à gauche */}
-  {!showTopList ? (
-    <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
-      <motion.button
-        key="open-top-list"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={() => setShowTopList(true)}
-        className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
-        aria-label="Open Top List"
-      >
-        <FiList size={24} />
-      </motion.button>
-    </div>
-  ) : (
-    <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
-      <motion.div
-        key="top-list-panel"
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -50 }}
-        transition={{ duration: 0.5 }}
-        className="p-4 bg-white bg-opacity-75 rounded shadow text-black"
-      >
-        <button
-          onClick={() => setShowTopList(false)}
-          className="absolute top-0 right-0 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-700 focus:outline-none"
-          aria-label="Close Top List"
-        >
-          <FiX size={16} />
-        </button>
-        <h2 className="text-lg font-bold mb-4">Select Top</h2>
-        <div className="flex flex-col gap-2">
-          {shapeOptions.map((faces) => (
-            <button
-              key={faces}
-              onClick={() => handleTopSelection(faces)}
-              className={`px-4 py-2 rounded shadow text-white ${
-                numFaces === faces ? 'bg-blue-700' : 'bg-gray-400 hover:bg-gray-500'
-              }`}
-            >
-              Top {faces}
-            </button>
-          ))}
+        <div className="absolute bottom-0 right-0 z-10">
+          <motion.button
+            key="toggle-unfold"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setIsUnfolded((prev) => !prev)}
+            className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+            aria-label="Toggle Unfold"
+          >
+            <FiSettings size={24} />
+          </motion.button>
         </div>
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>
+      </AnimatePresence>
 
-<AnimatePresence>
-  {/* Liste des réseaux au milieu à droite */}
-  {!showNetworkList ? (
-    <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10">
-      <motion.button
-        key="open-network-list"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={() => setShowNetworkList(true)}
-        className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
-        aria-label="Open Network List"
-      >
-        <FiList size={24} />
-      </motion.button>
-    </div>
-  ) : (
-    <div className="absolute top-1/2 right-0 transform -translate-y-1/2 max-h-[60%] overflow-y-auto overflow-x-hidden z-10">
-      <motion.div
-        key="network-list-panel"
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 50 }}
-        transition={{ duration: 0.5 }}
-        className="p-4 bg-white bg-opacity-75 rounded shadow text-black h-full overflow-y-auto"
-      >
-        <button
-          onClick={() => setShowNetworkList(false)}
-          className="absolute top-0 right-0 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-700 focus:outline-none"
-          aria-label="Close Network List"
-        >
-          <FiX size={16} />
-        </button>
-        <h2 className="text-lg font-bold mb-4 sticky top-0 left-0">Networks</h2>
-        <div className="flex flex-col gap-2">
-          {currentTopNetworks.map((item) => (
-            <button
-              key={item.network}
-              onClick={() => handleNetworkHighlight(item.network)}
-              className={`px-3 py-2 rounded shadow ${
-                highlightedNetwork === item.network
-                  ? 'bg-blue-700 text-white'
-                  : 'bg-gray-300 hover:bg-gray-400 text-black'
-              }`}
+      <AnimatePresence>
+
+        {!showTopList ? (
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
+            <motion.button
+              key="open-top-list"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setShowTopList(true)}
+              className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+              aria-label="Open Top List"
             >
-              {item.network}
-            </button>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>
+              <FiList size={24} />
+            </motion.button>
+          </div>
+        ) : (
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
+            <motion.div
+              key="top-list-panel"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.5 }}
+              className="p-4 bg-white bg-opacity-75 rounded shadow text-black"
+            >
+              <button
+                onClick={() => setShowTopList(false)}
+                className="absolute top-0 right-0 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-700 focus:outline-none"
+                aria-label="Close Top List"
+              >
+                <FiX size={16} />
+              </button>
+              <h2 className="text-lg font-bold mb-4">Select Top</h2>
+              <div className="flex flex-col gap-2">
+                {shapeOptions.map((faces) => (
+                  <button
+                    key={faces}
+                    onClick={() => handleTopSelection(faces)}
+                    className={`px-4 py-2 rounded shadow text-white ${numFaces === faces ? 'bg-blue-700' : 'bg-gray-400 hover:bg-gray-500'
+                      }`}
+                  >
+                    Top {faces}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {isUnfolded &&  <h2 className="absolute top-1 left-1  z-10  text-white ">{showMonthly ? "Monthly average posts per day" : "Yearly average posts per day"}</h2> }
+      <AnimatePresence>
+
+        {!showNetworkList ? (
+          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10">
+            <motion.button
+              key="open-network-list"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setShowNetworkList(true)}
+              className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+              aria-label="Open Network List"
+            >
+              <FiList size={24} />
+            </motion.button>
+          </div>
+        ) : (
+          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 max-h-[60%] overflow-y-auto overflow-x-hidden z-10">
+            <motion.div
+              key="network-list-panel"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.5 }}
+              className="p-4 bg-white bg-opacity-75 rounded shadow text-black h-full overflow-y-auto"
+            >
+              <button
+                onClick={() => setShowNetworkList(false)}
+                className="absolute top-0 right-0 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-700 focus:outline-none"
+                aria-label="Close Network List"
+              >
+                <FiX size={16} />
+              </button>
+              <h2 className="text-lg font-bold mb-4 sticky top-0 left-0">Networks</h2>
+              <div className="flex flex-col gap-2">
+                {currentTopNetworks.map((item) => (
+                  <button
+                    key={item.network}
+                    onClick={() => handleNetworkHighlight(item.network)}
+                    className={`px-3 py-2 rounded shadow ${highlightedNetwork === item.network
+                        ? 'bg-blue-700 text-white'
+                        : 'bg-gray-300 hover:bg-gray-400 text-black'
+                      }`}
+                  >
+                    {item.network}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <Canvas
         shadows
@@ -556,6 +705,7 @@ const [showNetworkList, setShowNetworkList] = useState(false);
           isUnfolded={isUnfolded}
           toggleUnfold={() => setIsUnfolded((prev) => !prev)}
           highlightedNetwork={highlightedNetwork}
+          showMonthly={showMonthly}
         />
 
         <OrbitControls />

@@ -236,8 +236,8 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
   const [spacingXY, setSpacingXY] = useState(0); // Écartement radial sur X et Y
   const [spacingXZ, setSpacingXZ] = useState(0); // Écartement sur X et Z
   const thickness = 0.2; // Épaisseur des tranches
-  const [showSettings, setShowSettings] = useState(false);
-  const [showSliceList, setShowSliceList] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
+  const [showSliceList, setShowSliceList] = useState(true);
   const [numberOfSlices, setNumberOfSlices] = useState<number>(numSlices);
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -451,7 +451,7 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
   {/* Slider X+Z */}
               <div className="mb-4">
                 <label htmlFor="spacingXZ" className="block text-sm font-medium text-gray-700 mb-1">
-                  Écartement (X & Z) : {spacingXZ.toFixed(2)}
+                  Spacing (X & Z) : {spacingXZ.toFixed(2)}
                 </label>
                 <input
                   type="range"
@@ -467,7 +467,7 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
               {/* Slider X+Y */}
               <div className="mb-4">
                 <label htmlFor="spacingXY" className="block text-sm font-medium text-gray-700 mb-1">
-                  Écartement radial (X & Y) : {spacingXY.toFixed(2)}
+                  Spacing (X & Y) : {spacingXY.toFixed(2)}
                 </label>
                 <input
                   type="range"
@@ -502,7 +502,7 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
               {/* Nombre de tranches */}
               <div className="my-4">
                 <label htmlFor="numberOfSlices" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre de tranches :
+                Number of slices :
                 </label>
                 <input
                   type="number"
@@ -522,7 +522,7 @@ const PieChartSection: React.FC<{ numSlices?: number }> = ({ numSlices = 5 }) =>
                   className="flex items-center px-4 py-2 bg-gray-800 text-white rounded shadow hover:bg-gray-600 focus:outline-none"
                 >
                   <FiRefreshCw className="mr-2" />
-                  Générer
+                  Generate
                 </button>
               </div>
             </motion.div></div> 

@@ -252,7 +252,7 @@ const Particle: React.FC<ParticleProps> = ({ curve }) => {
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[5, 8, 8]} />
+      <sphereGeometry args={[12, 12, 12]} />
       <meshStandardMaterial color="red" />
     </mesh>
   );
@@ -364,7 +364,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
     // Add a size for each node based on its degree
     return nodes.map((node) => ({
       ...node,
-      size: Math.max(2, Math.min(10, nodeDegrees[node.item])) * 2.5, // Adjusted size scale
+      size: Math.max(2, Math.min(10, nodeDegrees[node.item])) * 3.5, // Adjusted size scale
     }));
   }, [nodes, links]);
 
@@ -381,7 +381,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
         start: sourcePos,
         end: targetPos,
         color: 'white',
-        radius: 1.2,
+        radius: 3.2,
         visible: visible,
       };
     });
@@ -446,7 +446,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
         activeNodes.some(node => node.item === link.source || node.item === link.target)
       );
 
-      console.log('Generating particles for links:', relatedLinks);
+     
 
       const newParticles = relatedLinks.map((link, index) => {
         const start = nodePositions[link.source];
@@ -462,7 +462,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
 
       setParticles(newParticles);
     } else {
-      console.log('Clearing all particles');
+    
       setParticles([]);
     }
   }, [hoveredNode, highlightedNode, links, nodePositions, nodes]);
@@ -553,16 +553,7 @@ const SankeyDiagram3D: React.FC<SankeyDiagram3DProps> = ({
         <Particle key={particle.key} curve={particle.curve} />
       ))}
 
-      {/* Ground */}
-      {/* <mesh
-        position={[0, -(numRows * (nodeSize + verticalSpacing)) / 2 - 30, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        castShadow
-        receiveShadow
-      >
-        <planeGeometry args={[3000, 3000]} />
-        <meshStandardMaterial color="#404040" />
-      </mesh> */}
+     
     </group>
   );
 };
@@ -760,8 +751,8 @@ const ProjectsSection: React.FC = () => {
 
   // Nouvel état pour contrôler la visibilité des SpacingControls
   const [showSpacingControls, setShowSpacingControls] = useState<boolean>(false);
-  const [showNodeList, setShowNodeList] = useState<boolean>(false);
-  const [showDataGeneration, setShowDataGeneration] = useState<boolean>(false);
+  const [showNodeList, setShowNodeList] = useState<boolean>(true);
+  const [showDataGeneration, setShowDataGeneration] = useState<boolean>(true);
   // Generate data with useMemo to avoid unnecessary recalculations
   const DATA = useMemo(
     () =>

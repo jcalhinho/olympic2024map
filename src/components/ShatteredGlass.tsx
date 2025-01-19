@@ -107,7 +107,7 @@ const ShatteredGlass: React.FC<ShatteredGlassProps> = ({
     // Par exemple, positionner les fragments à 2 unités devant la caméra
     const fragmentStartPos = camPos.add(forward.multiplyScalar(2));
     fragmentStartPos.x -= 40;
-  console.log(fragmentStartPos)
+ 
     // Génération des fragments (le reste du code reste identique)
     const numPoints = 30;
     const points: [number, number][] = [];

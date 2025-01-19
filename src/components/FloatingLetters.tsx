@@ -81,8 +81,8 @@ const FloatingLetters: React.FC<FloatingLettersProps> = ({ letters }) => {
       }
       // Cas 2: Touche l'écran invisible
       else if (userData?.type === 'invisibleScreen') {
-        console.log('Collision letter -> invisibleScreen !');
-        // Tu peux déclencher un son ou autre action
+    null
+      
       }
     }
   };
