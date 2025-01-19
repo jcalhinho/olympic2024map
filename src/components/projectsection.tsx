@@ -936,65 +936,77 @@ const ProjectsSection: React.FC = () => {
       transition={{ duration: 0.5 }}
       className="relative"
     >
-      <div className="p-4 bg-white bg-opacity-75 rounded shadow">
-        <h2 className="text-xl font-bold mb-4">Data Generation</h2>
-        <div className="mb-4">
-          <label htmlFor="numberOfSourceNodes" className="block text-sm font-medium text-gray-700">
-            Source Nodes:
-          </label>
-          <input
-            type="number"
-            id="numberOfSourceNodes"
-            value={numberOfSourceNodes}
-            onChange={(e) => setNumberOfSourceNodes(Number(e.target.value))}
-            min={1}
-            max={500}
-            className="mt-1 p-1 border rounded w-full"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="numberOfMiddleNodes" className="block text-sm font-medium text-gray-700">
-            Source/Target Nodes:
-          </label>
-          <input
-            type="number"
-            id="numberOfMiddleNodes"
-            value={numberOfMiddleNodes}
-            onChange={(e) => setNumberOfMiddleNodes(Number(e.target.value))}
-            min={0}
-            max={500}
-            className="mt-1 p-1 border rounded w-full"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="numberOfTargetNodes" className="block text-sm font-medium text-gray-700">
-            Target Nodes:
-          </label>
-          <input
-            type="number"
-            id="numberOfTargetNodes"
-            value={numberOfTargetNodes}
-            onChange={(e) => setNumberOfTargetNodes(Number(e.target.value))}
-            min={1}
-            max={500}
-            className="mt-1 p-1 border rounded w-full"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="numberOfLinks" className="block text-sm font-medium text-gray-700">
-            Links:
-          </label>
-          <input
-            type="number"
-            id="numberOfLinks"
-            value={numberOfLinks}
-            onChange={(e) => setNumberOfLinks(Number(e.target.value))}
-            min={0}
-            max={1000}
-            className="mt-1 p-1 border rounded w-full"
-          />
-        </div>
-      </div>
+     <div className="p-4 bg-white bg-opacity-75 rounded shadow">
+  <h2 className="text-xl font-bold mb-4">Data Generation</h2>
+  <div className="mb-4">
+    <label htmlFor="numberOfSourceNodes" className="block text-sm font-medium text-gray-700">
+      Source Nodes:
+    </label>
+    <input
+      type="number"
+      id="numberOfSourceNodes"
+      value={numberOfSourceNodes}
+      onChange={(e) => {
+        const value = Math.min(Number(e.target.value), 500);
+        setNumberOfSourceNodes(value);
+      }}
+      min={1}
+      max={500}
+      className="mt-1 p-1 border rounded w-full"
+    />
+  </div>
+  <div className="mb-4">
+    <label htmlFor="numberOfMiddleNodes" className="block text-sm font-medium text-gray-700">
+      Source/Target Nodes:
+    </label>
+    <input
+      type="number"
+      id="numberOfMiddleNodes"
+      value={numberOfMiddleNodes}
+      onChange={(e) => {
+        const value = Math.min(Number(e.target.value), 500);
+        setNumberOfMiddleNodes(value);
+      }}
+      min={0}
+      max={500}
+      className="mt-1 p-1 border rounded w-full"
+    />
+  </div>
+  <div className="mb-4">
+    <label htmlFor="numberOfTargetNodes" className="block text-sm font-medium text-gray-700">
+      Target Nodes:
+    </label>
+    <input
+      type="number"
+      id="numberOfTargetNodes"
+      value={numberOfTargetNodes}
+      onChange={(e) => {
+        const value = Math.min(Number(e.target.value), 500);
+        setNumberOfTargetNodes(value);
+      }}
+      min={1}
+      max={500}
+      className="mt-1 p-1 border rounded w-full"
+    />
+  </div>
+  <div className="mb-4">
+    <label htmlFor="numberOfLinks" className="block text-sm font-medium text-gray-700">
+      Links:
+    </label>
+    <input
+      type="number"
+      id="numberOfLinks"
+      value={numberOfLinks}
+      onChange={(e) => {
+        const value = Math.min(Number(e.target.value), 2000);
+        setNumberOfLinks(value);
+      }}
+      min={0}
+      max={2000}
+      className="mt-1 p-1 border rounded w-full"
+    />
+  </div>
+</div>
       {/* Bouton pour fermer les contrôles de Data Generation */}
       <button
         onClick={toggleDataGeneration}

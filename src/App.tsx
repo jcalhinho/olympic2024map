@@ -19,14 +19,14 @@ function App() {
         className="flex justify-end items-center px-4  bg-gray-800 text-white fixed top-0 left-0 right-0 z-10"
       >
         <nav className="flex space-x-4 py-2">
-          <Link to="/" className="mx-2 hover:underline">
+          <Link to="/" className="mx-2 cursor-pointer">
             Home
           </Link>
           <div className="relative group">
-            <Link to="/projects" className="mx-2 hover:underline">
+            
               Projects
-            </Link>
-            <div className="absolute hidden group-hover:block bg-white text-black  rounded shadow-lg whitespace-nowrap">
+            
+            <div className="absolute hidden group-hover:block bg-white text-black  rounded shadow-lg whitespace-nowrap top-6">
               <Link to="/projects/sankey3d" className="block px-4 py-2 hover:bg-gray-200">
                 Sankey 3D
               </Link>
@@ -38,7 +38,7 @@ function App() {
               </Link>
             </div>
           </div>
-          <Link to="/who" className="mx-2 hover:underline">
+          <Link to="/who" className="mx-2 cursor-pointer">
             Who?
           </Link>
         </nav>

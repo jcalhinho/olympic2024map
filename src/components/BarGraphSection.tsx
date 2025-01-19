@@ -3,31 +3,32 @@ import { Canvas } from '@react-three/fiber';
 import { Billboard, Environment, OrbitControls, Text } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
 import * as THREE from 'three';
-import { FiSettings } from 'react-icons/fi';
+import { FiList, FiSettings, FiX } from 'react-icons/fi';
+import { AnimatePresence, motion } from 'framer-motion';
 
 
 
 const socialDataFull = [
-  { network: 'Twitter', posts: 15000000, color: 'cyan' },
-  { network: 'Instagram', posts: 14000000, color: 'magenta' },
-  { network: 'Facebook', posts: 13000000, color: 'blue' },
-  { network: 'LinkedIn', posts: 1200000, color: 'navy' },
-  { network: 'Snapchat', posts: 1100000, color: 'yellow' },
-  { network: 'TikTok', posts: 16000000, color: 'lightblue' },
-  { network: 'Reddit', posts: 900000, color: 'orange' },
-  { network: 'Pinterest', posts: 800000, color: 'red' },
-  { network: 'YouTube', posts: 1000000, color: 'darkred' },
-  { network: 'Tumblr', posts: 700000, color: 'purple' },
-  { network: 'WhatsApp', posts: 600000, color: 'green' },
-  { network: 'WeChat', posts: 5000000, color: 'teal' },
-  { network: 'Viber', posts: 400000, color: 'pink' },
-  { network: 'Line', posts: 300000, color: 'brown' },
-  { network: 'Telegram', posts: 200000, color: 'skyblue' },
-  { network: 'Discord', posts: 100000, color: 'indigo' },
-  { network: 'Clubhouse', posts: 1500000, color: 'lavender' },
-  { network: 'Flickr', posts: 2500000, color: 'coral' },
-  { network: 'Periscope', posts: 3500000, color: 'olive' },
-  { network: 'Mix', posts: 4500000, color: 'goldenrod' },
+  { network: 'X', posts: 82000000, color: 'cyan' },
+  { network: 'Instagram', posts: 30000000, color: 'magenta' },
+  { network: 'Facebook', posts: 25000000, color: 'blue' },
+  { network: 'LinkedIn', posts: 5000000, color: 'navy' },
+  { network: 'Snapchat', posts: 8000000, color: 'yellow' },
+  { network: 'TikTok', posts: 45000000, color: 'lightblue' },
+  { network: 'Reddit', posts: 7000000, color: 'orange' },
+  { network: 'Pinterest', posts: 4000000, color: 'red' },
+  { network: 'YouTube', posts: 20000000, color: 'darkred' },
+  { network: 'Tumblr', posts: 2000000, color: 'purple' },
+  { network: 'WhatsApp', posts: 15000000, color: 'green' },
+  { network: 'WeChat', posts: 10000000, color: 'teal' },
+  { network: 'Threads', posts: 1500000, color: 'pink' },
+  { network: 'Line', posts: 2000000, color: 'brown' },
+  { network: 'Telegram', posts: 3000000, color: 'skyblue' },
+  { network: 'Discord', posts: 4000000, color: 'indigo' },
+  { network: 'Clubhouse', posts: 1000000, color: 'lavender' },
+  { network: 'Flickr', posts: 500000, color: 'coral' },
+  { network: 'Periscope', posts: 1000000, color: 'olive' },
+  { network: 'Mix', posts: 800000, color: 'goldenrod' },
 ];
 const generateSocialDataMap = () => {
   const map: { [key: number]: typeof socialDataFull } = {};
@@ -369,7 +370,7 @@ const SubdividingBlock = ({
        {highlightedNetwork === data.network ? (
     <>
       <Text fontSize={0.15} color="white" anchorX="center" anchorY="middle">
-        avg posts by day: {data.posts}
+        avg posts by day: {data.posts}M
       </Text>
       <Text fontSize={0.15} color="white" anchorX="center" anchorY="top" position={[0, -0.1, 0]}>
         {data.network}
@@ -409,63 +410,136 @@ const BarGraphSection = () => {
   const handleNetworkHighlight = (network: string) => {
     setHighlightedNetwork((prev) => (prev === network ? null : network));
   };
-
+const [showTopList, setShowTopList] = useState(false);
+const [showNetworkList, setShowNetworkList] = useState(false);
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-      {/* Nouvelle div pour choisir le top (au lieu du dropdown) */}
-      <div style={{ position: 'absolute', zIndex: 2, top: 150, left: 20 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+     
+      <AnimatePresence>
+  {/* Bouton en haut à droite pour le dépliement */}
+  <div className="absolute bottom-0 right-0 z-10">
+    <motion.button
+      key="toggle-unfold"
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={() => setIsUnfolded((prev) => !prev)}
+      className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+      aria-label="Toggle Unfold"
+    >
+      <FiSettings size={24} />
+    </motion.button>
+  </div>
+</AnimatePresence>
+
+<AnimatePresence>
+  {/* Liste des choix de tops au milieu à gauche */}
+  {!showTopList ? (
+    <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
+      <motion.button
+        key="open-top-list"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0 }}
+        transition={{ duration: 0.3 }}
+        onClick={() => setShowTopList(true)}
+        className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+        aria-label="Open Top List"
+      >
+        <FiList size={24} />
+      </motion.button>
+    </div>
+  ) : (
+    <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-10">
+      <motion.div
+        key="top-list-panel"
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
+        transition={{ duration: 0.5 }}
+        className="p-4 bg-white bg-opacity-75 rounded shadow text-black"
+      >
+        <button
+          onClick={() => setShowTopList(false)}
+          className="absolute top-0 right-0 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-700 focus:outline-none"
+          aria-label="Close Top List"
+        >
+          <FiX size={16} />
+        </button>
+        <h2 className="text-lg font-bold mb-4">Select Top</h2>
+        <div className="flex flex-col gap-2">
           {shapeOptions.map((faces) => (
             <button
               key={faces}
               onClick={() => handleTopSelection(faces)}
-              style={{
-                padding: '10px 20px',
-                background: numFaces === faces ? '#004e92' : '#ccc',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-              }}
+              className={`px-4 py-2 rounded shadow text-white ${
+                numFaces === faces ? 'bg-blue-700' : 'bg-gray-400 hover:bg-gray-500'
+              }`}
             >
               Top {faces}
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
+    </div>
+  )}
+</AnimatePresence>
 
-      {/* Liste des 20 réseaux */}
-      <div style={{ position: 'absolute', zIndex: 2, top: 150, right: 20, overflowY:"auto" }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+<AnimatePresence>
+  {/* Liste des réseaux au milieu à droite */}
+  {!showNetworkList ? (
+    <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-10">
+      <motion.button
+        key="open-network-list"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0 }}
+        transition={{ duration: 0.3 }}
+        onClick={() => setShowNetworkList(true)}
+        className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+        aria-label="Open Network List"
+      >
+        <FiList size={24} />
+      </motion.button>
+    </div>
+  ) : (
+    <div className="absolute top-1/2 right-0 transform -translate-y-1/2 max-h-[60%] overflow-y-auto overflow-x-hidden z-10">
+      <motion.div
+        key="network-list-panel"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 50 }}
+        transition={{ duration: 0.5 }}
+        className="p-4 bg-white bg-opacity-75 rounded shadow text-black h-full overflow-y-auto"
+      >
+        <button
+          onClick={() => setShowNetworkList(false)}
+          className="absolute top-0 right-0 p-1 bg-gray-800 text-white rounded-full hover:bg-gray-700 focus:outline-none"
+          aria-label="Close Network List"
+        >
+          <FiX size={16} />
+        </button>
+        <h2 className="text-lg font-bold mb-4 sticky top-0 left-0">Networks</h2>
+        <div className="flex flex-col gap-2">
           {currentTopNetworks.map((item) => (
             <button
               key={item.network}
               onClick={() => handleNetworkHighlight(item.network)}
-              style={{
-                padding: '5px 10px',
-                background: highlightedNetwork === item.network ? '#004e92' : '#ddd',
-                color: highlightedNetwork === item.network ? 'white' : 'black',
-                border: '1px solid #ccc',
-                borderRadius: '3px',
-                cursor: 'pointer',
-              }}
+              className={`px-3 py-2 rounded shadow ${
+                highlightedNetwork === item.network
+                  ? 'bg-blue-700 text-white'
+                  : 'bg-gray-300 hover:bg-gray-400 text-black'
+              }`}
             >
               {item.network}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Bouton de basculement du mode déplié */}
-      <div style={{ position: 'absolute', zIndex: 2, top: 50, right: 20 }}>
-        <button
-          onClick={() => setIsUnfolded((prev) => !prev)}
-          className="p-2 bg-gray-800 text-white rounded shadow"
-          aria-label="Ouvrir les contrôles de génération de données"
-        >
-          <FiSettings size={24} />
-        </button>
-      </div>
+      </motion.div>
+    </div>
+  )}
+</AnimatePresence>
 
       <Canvas
         shadows
