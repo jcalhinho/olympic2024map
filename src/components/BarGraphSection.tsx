@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { Billboard, Environment, OrbitControls, RoundedBox, Text } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
 import * as THREE from 'three';
-import { FiList, FiSettings, FiX } from 'react-icons/fi';
+import { FiAlertCircle, FiHelpCircle, FiList, FiSettings, FiX } from 'react-icons/fi';
 import { AnimatePresence, motion } from 'framer-motion';
 
 
@@ -193,7 +193,12 @@ const SubdividingBlock = ({
   const [isDivided, setIsDivided] = useState(true);
   const toggleDivide = () => setIsDivided((prev) => !prev);
 
- 
+  const [hoveredBar, setHoveredBar] = useState<{
+    network: string;
+    value: number;
+    month?: number;
+  } | null>(null);
+
   const socialData = [...(socialDataMap[numFaces] || [])].sort((a, b) => b.posts - a.posts);
   const maxPosts = socialData.reduce((max, d) => (d.posts > max ? d.posts : max), 0);
 
@@ -342,6 +347,19 @@ const SubdividingBlock = ({
                     position={animatedPosition as any}
                     rotation={animatedRotation as any}
                     scale={animatedScale as any}
+                    onPointerOver={(e) => {
+                      e.stopPropagation();
+                      setHoveredBar({
+                        network: data.network,
+                        month,
+                        value: postsValue,
+                      });
+                    }}
+                    onPointerOut={(e) => {
+                      e.stopPropagation();
+                      setHoveredBar(null);
+                    }}
+
                   >
                     <RoundedBox
                       args={[0.5, 0.5, 0.5 + postsScale]}
@@ -392,7 +410,16 @@ const SubdividingBlock = ({
                         </Billboard>
                       )
                     )}
-
+{hoveredBar?.network === data.network && hoveredBar.month === month && (
+                      <Billboard
+                        position={[0, 0, barHeight / 2 + 0.5]}
+                        rotation={[Math.PI / 2, 0, 0]}
+                      >
+                        <Text fontSize={0.15} color="#fff" anchorX="center" anchorY="middle">
+                          {hoveredBar.network}/{monthNames[month]}: {hoveredBar.value}M
+                        </Text>
+                      </Billboard>
+                    )}
                   </animated.group>
                 );
               })}
@@ -473,7 +500,17 @@ const SubdividingBlock = ({
               position={animatedPosition as any}
               rotation={animatedRotation as any}
               scale={animatedScale as any}//|| 
-
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                setHoveredBar({
+                  network: data.network,
+                  value: data.posts,
+                });
+              }}
+              onPointerOut={(e) => {
+                e.stopPropagation();
+                setHoveredBar(null);
+              }}
             >
               <RoundedBox
                 args={[0.5, 0.5, 0.5 + postsScale]} // Taille de la barre
@@ -518,7 +555,13 @@ const SubdividingBlock = ({
                   )}
                 </Text>
               </Billboard>
-
+              {hoveredBar?.network === data.network && hoveredBar.month === undefined && (
+                <Billboard position={[0, 0, barHeight / 2 + 0.6]} rotation={[Math.PI / 2, 0, 0]}>
+                  <Text fontSize={0.15} color="#FFF" anchorX="center" anchorY="middle">
+                    {hoveredBar.value}M 
+                  </Text>
+                </Billboard>
+              )}
             </animated.group>
           );
         })
@@ -569,18 +612,21 @@ const BarGraphSection = () => {
       <AnimatePresence>
 
         <div className="absolute bottom-0 right-0 z-10">
-          <motion.button
-            key="toggle-unfold"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={() => setIsUnfolded((prev) => !prev)}
-            className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
-            aria-label="Toggle Unfold"
-          >
-            <FiSettings size={24} />
-          </motion.button>
+        <div className="tooltip">
+      <motion.button
+        key="toggle-unfold"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0 }}
+        transition={{ duration: 0.3 }}
+        onClick={() => setIsUnfolded((prev) => !prev)}
+        className="p-3 bg-gray-800 text-white rounded shadow hover:bg-gray-700 focus:outline-none"
+        aria-label="Toggle Unfold"
+      >
+        <FiAlertCircle size={24} />
+      </motion.button>
+      <span className="tooltiptext">Weird mode!</span>
+    </div>
         </div>
       </AnimatePresence>
 
